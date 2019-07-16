@@ -1,5 +1,7 @@
 package org.lappsgrid.eager.mining.ranking
 
+import org.apache.solr.common.SolrDocument
+import org.apache.solr.common.SolrDocumentList
 import org.lappsgrid.eager.mining.api.Query
 import org.lappsgrid.eager.mining.core.json.Serializer
 import org.lappsgrid.eager.mining.ranking.model.Document
@@ -45,6 +47,26 @@ class Main extends MessageBox{
         po.send(message)
 
          */
+
+        result = message.getBody()
+        SolrDocumentList documents = result.documents
+
+
+        Query query = result.query
+
+        //WHERE DO THE PARAMS COME FROM
+        Map params = [:]
+        RankingProcessor ranker = new RankingProcessor(params)
+
+        List docs = []
+        for (int i = 0; i < n; ++i) {
+            SolrDocument doc = documents.get(i)
+             docs << new Document(doc)
+        }
+
+        List<Document> ranked_documents = ranker.rank(query, docs)
+
+        result.documents = ranked_documents
 
 
     }
