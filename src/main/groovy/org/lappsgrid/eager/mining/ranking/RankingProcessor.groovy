@@ -4,19 +4,25 @@ import groovy.util.logging.Slf4j
 import org.lappsgrid.eager.mining.api.Query
 import org.lappsgrid.eager.mining.ranking.model.Document
 
+import org.lappsgrid.rabbitmq.Message
+import org.lappsgrid.rabbitmq.topic.MessageBox
+import org.lappsgrid.rabbitmq.topic.PostOffice
+
 import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
 @Slf4j('logger')
-class RankingProcessor {
+class RankingProcessor{
 
     ExecutorCompletionService<Document> executor
     CompositeRankingEngine engines
 
+
     RankingProcessor(Map params) {
         this(Runtime.getRuntime().availableProcessors(), params)
      }
+
 
     RankingProcessor(int nThreads, Map params) {
         executor = new ExecutorCompletionService<>(Executors.newFixedThreadPool(nThreads))
