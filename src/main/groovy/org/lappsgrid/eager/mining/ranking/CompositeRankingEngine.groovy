@@ -124,7 +124,7 @@ class CompositeRankingEngine {
                 section = control = id = 'unknown'
                 return
             }
-            section = parts[0]
+            section = parts[0] 
             control = parts[1]
             id = parts[2]
         }
