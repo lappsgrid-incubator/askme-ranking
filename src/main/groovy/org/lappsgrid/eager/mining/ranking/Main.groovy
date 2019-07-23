@@ -10,7 +10,9 @@ import org.lappsgrid.eager.mining.ranking.model.Document
 import org.lappsgrid.rabbitmq.Message
 import org.lappsgrid.rabbitmq.topic.MessageBox
 import org.lappsgrid.rabbitmq.topic.PostOffice
-import groovy.json.JsonSlurper
+import org.lappsgrid.eager.mining.model.Section
+
+
 
 @Slf4j('logger')
 class Main extends MessageBox{
@@ -20,6 +22,7 @@ class Main extends MessageBox{
     static final String HOST = "rabbitmq.lappsgrid.org"
     static final String EXCHANGE = "org.lappsgrid.query"
     PostOffice po = new PostOffice(EXCHANGE, HOST)
+
 
     Main(){
         super(EXCHANGE, BOX)
@@ -34,15 +37,28 @@ class Main extends MessageBox{
 
         Object dq = message.body
         Query q = dq.query
+        SolrDocument solr = dq.document
+        Document doc = new Document()
+        ['id', 'pmid','pmc','doi','year','path'].each { field ->
+            doc.setProperty(field, solr.getFieldValue(field))
+        }
 
-        //Cause of error - can't cast to document
-        Document d = dq.document
-        //Problem comes form web / solr ?
+        Section title = new Section()
+        title.text  = solr.getFieldValue('title')
+
+
+        Section abs = new Section()
+        abs.text = solr.getFieldValue('abstract')
+
+
+        List document = [doc]
 
         RankingProcessor ranker = new RankingProcessor(params)
-        List<Document> docList = [d]
-        List<Document> sorted = ranker.rank(q, docList)
+
+        List<Document> sorted = ranker.rank(q, document)
         logger.info('Score:{}', sorted[0].getScore())
+
+
 
     }
 
