@@ -45,10 +45,11 @@ class Main extends MessageBox{
 
         Section title = new Section()
         title.text  = solr.getFieldValue('title')
-
+        doc.setProperty('title', title)
 
         Section abs = new Section()
         abs.text = solr.getFieldValue('abstract')
+        doc.setProperty('articleAbstract', abs)
 
 
         List document = [doc]
