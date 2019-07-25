@@ -56,8 +56,10 @@ class Main extends MessageBox{
 
         List<Document> sorted = ranker.rank(q, document)
         logger.info('Score:{}', sorted[0].getScore())
-
-
+        logger.info('Sending ranked document {} from message {} back to web',num,id)
+        message.setBody(sorted[0])
+        message.setRoute([WEB_MBOX])
+        po.send(message)
 
     }
 
