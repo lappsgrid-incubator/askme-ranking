@@ -22,6 +22,7 @@ class Main extends MessageBox{
     static final String HOST = "rabbitmq.lappsgrid.org"
     static final String EXCHANGE = "org.lappsgrid.query"
     PostOffice po = new PostOffice(EXCHANGE, HOST)
+    Stanford nlp = new Stanford()
 
 
     Main(){
@@ -43,14 +44,11 @@ class Main extends MessageBox{
             doc.setProperty(field, solr.getFieldValue(field))
         }
 
-        Section title = new Section()
-        title.text  = solr.getFieldValue('title')
+        Section title = nlp.process(solr.getFieldValue('title').toString())
         doc.setProperty('title', title)
 
-        Section abs = new Section()
-        abs.text = solr.getFieldValue('abstract')
+        Section abs = nlp.process(solr.getFieldValue('abstract').toString())
         doc.setProperty('articleAbstract', abs)
-
 
         List document = [doc]
 
