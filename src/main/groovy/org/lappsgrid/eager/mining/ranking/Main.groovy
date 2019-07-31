@@ -30,10 +30,6 @@ class Main extends MessageBox{
 
     }
 
-    //TO-DO
-    //2. dealing with lists?
-    //3. add new method to rank
-
     void recv(Message message){
         String id = message.getId()
         String command = message.getCommand()
@@ -47,32 +43,39 @@ class Main extends MessageBox{
             Object dq = message.body
             Query q = dq.query
             SolrDocument solr = dq.document
-            Document doc = new Document()
-            ['id', 'pmid', 'pmc', 'doi', 'year', 'path'].each { field ->
-                doc.setProperty(field, solr.getFieldValue(field))
-            }
 
-            Section title = nlp.process(solr.getFieldValue('title').toString())
-            doc.setProperty('title', title)
+            Document document = createDocument(solr)
+            RankingProcessor ranker = findCreateRanker(id, params)
 
-            Section abs = nlp.process(solr.getFieldValue('abstract').toString())
-            doc.setProperty('articleAbstract', abs)
 
-            List document = [doc]
+            Document scored_document = ranker.score(q, document)
 
-            if (!ranking_processors.containsKey(id)) {
-                ranking_processors."${id}" = new RankingProcessor(params)
-            }
-            RankingProcessor ranker = ranking_processors."${id}"
-
-            List<Document> sorted = ranker.rank(q, document)
-            logger.info('Score:{}', sorted[0].getScore())
+            logger.info('Score: {}', scored_document.getScore())
             logger.info('Sending ranked document {} from message {} back to web', command, id)
-            message.setBody(sorted[0])
+            message.setBody(scored_document)
             message.setRoute([WEB_MBOX])
             po.send(message)
         }
 
+    }
+    Document createDocument(SolrDocument solr){
+        Document document = new Document()
+        ['id', 'pmid', 'pmc', 'doi', 'year', 'path'].each { field ->
+            document.setProperty(field, solr.getFieldValue(field))
+        }
+        Section title = nlp.process(solr.getFieldValue('title').toString())
+        document.setProperty('title', title)
+        Section abs = nlp.process(solr.getFieldValue('abstract').toString())
+        document.setProperty('articleAbstract', abs)
+        return document
+    }
+
+    RankingProcessor findCreateRanker(String id, Map params){
+        if (!ranking_processors.containsKey(id)) {
+            ranking_processors."${id}" = new RankingProcessor(params)
+        }
+        RankingProcessor ranker = ranking_processors."${id}"
+        return ranker
     }
 
 
