@@ -56,6 +56,20 @@ class RankingProcessor{
         return result.sort { a,b -> b.score <=> a.score }
     }
 
+    //Scores a single document instead of document list
+    Document score(Query query, Document document){
+        Document ranked_document = new Document()
+        Future<Document> future = executor.submit(new RankingWorker(document, engines, query))
+        Future<Document> f2 = executor.take()
+        try {
+            ranked_document = f2.get()
+        }
+        catch (Throwable e) {
+            logger.error("Unable to get future document.", e)
+        }
+        return ranked_document
+    }
+
 
 
 }
