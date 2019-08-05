@@ -49,7 +49,7 @@
                             </descriptorRefs>
                             <archive>
                                 <manifest>
-                                    <mainClass>org.lappsgrid.eager.mining.ranking.Main</mainClass>
+                                    <mainClass>org.lappsgrid.askme.mining.ranking.Main</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>

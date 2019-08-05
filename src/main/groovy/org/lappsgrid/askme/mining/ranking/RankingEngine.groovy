@@ -1,11 +1,10 @@
-package org.lappsgrid.eager.mining.ranking
+package org.lappsgrid.askme.mining.ranking
 
 import groovy.util.logging.Slf4j
 import org.lappsgrid.eager.mining.api.Query
 import org.lappsgrid.eager.mining.model.Section
-import org.lappsgrid.eager.mining.ranking.model.Document
-import org.lappsgrid.eager.mining.scoring.ScoringAlgorithm
-import org.lappsgrid.eager.mining.scoring.WeightedAlgorithm
+import org.lappsgrid.askme.mining.scoring.ScoringAlgorithm
+import org.lappsgrid.askme.mining.scoring.WeightedAlgorithm
 
 /**
  *
@@ -53,7 +52,7 @@ class RankingEngine {
         algorithms.add(algorithm)
     }
 
-    Document scoreDocument(Query query, Document document){
+    org.lappsgrid.askme.mining.ranking.model.Document scoreDocument(Query query, org.lappsgrid.askme.mining.ranking.model.Document document){
         float total = 0.0f
         algorithms.each { algorithm ->
             def field = field(document)
@@ -86,9 +85,9 @@ class RankingEngine {
 
 
 
-    List<Document> rank(Query query, List<Document> documents) {
+    List<org.lappsgrid.askme.mining.ranking.model.Document> rank(Query query, List<org.lappsgrid.askme.mining.ranking.model.Document> documents) {
         logger.info("Ranking {} documents.", documents.size())
-        documents.each { Document document ->
+        documents.each { org.lappsgrid.askme.mining.ranking.model.Document document ->
             float total = 0.0f
             algorithms.each { algorithm ->
                 logger.info("Calculating Score for {} .", algorithm.name())

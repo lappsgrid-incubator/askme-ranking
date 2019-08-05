@@ -1,7 +1,7 @@
-package org.lappsgrid.eager.mining.ranking
+package org.lappsgrid.askme.mining.ranking
 
 import org.lappsgrid.eager.mining.api.Query
-import org.lappsgrid.eager.mining.ranking.model.Document
+import org.lappsgrid.askme.mining.ranking.model.Document
 import java.util.concurrent.Callable
 
 class RankingWorker implements Callable<Document> {

@@ -1,4 +1,4 @@
-package org.lappsgrid.eager.mining.scoring
+package org.lappsgrid.askme.mining.scoring
 
 import org.lappsgrid.eager.mining.api.Query
 import org.lappsgrid.eager.mining.model.Section
@@ -6,30 +6,30 @@ import org.lappsgrid.eager.mining.model.Sentence
 import org.lappsgrid.eager.mining.model.Token
 
 /**
- * Returns the perctage of query terms found in the first sentence.
+ *
  */
-class FirstSentenceEvaluator implements ScoringAlgorithm {
+class SentenceCountEvaluator implements ScoringAlgorithm {
     @Override
     float score(Query query, Section section) {
-        Set<String> found = new HashSet<>()
-        if (section.sentences.size() > 0) {
-            Sentence s = section.sentences[0]
+        int count = 0
+        for (Sentence s : section.sentences) {
             for (Token t : s.tokens) {
                 if (query.contains(t)) {
-                    found.add(t.lemma)
+                    ++count
+                    break
                 }
             }
         }
-        return ((float)found.size()) / query.terms.size()
+        return ((float) count) / section.sentences.size()
     }
 
     @Override
     String name() {
-        return "FirstSentenceEvaluator"
+        return "SentenceCountEvaluator"
     }
 
     @Override
     String abbrev() {
-        return "1stSent"
+        return "sents"
     }
 }

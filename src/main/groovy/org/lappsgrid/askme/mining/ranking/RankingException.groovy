@@ -1,4 +1,4 @@
-package org.lappsgrid.eager.mining.ranking
+package org.lappsgrid.askme.mining.ranking
 
 /**
  *

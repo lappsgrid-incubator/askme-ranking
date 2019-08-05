@@ -1,4 +1,4 @@
-package org.lappsgrid.eager.mining.scoring
+package org.lappsgrid.askme.mining.scoring
 
 import org.lappsgrid.eager.mining.model.Token
 

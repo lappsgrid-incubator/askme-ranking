@@ -1,14 +1,12 @@
-package org.lappsgrid.eager.mining.ranking
+package org.lappsgrid.askme.mining.ranking
 
 import groovy.util.logging.Slf4j
 import org.apache.solr.common.SolrDocument
-
 import org.lappsgrid.rabbitmq.Message
 import org.lappsgrid.rabbitmq.topic.MessageBox
 import org.lappsgrid.rabbitmq.topic.PostOffice
 
 import org.lappsgrid.eager.mining.api.Query
-import org.lappsgrid.eager.mining.ranking.model.Document
 import org.lappsgrid.eager.mining.model.Section
 
 
@@ -48,11 +46,11 @@ class Main extends MessageBox{
             Query q = dq.query
             SolrDocument solr = dq.document
 
-            Document document = createDocument(solr)
+            org.lappsgrid.askme.mining.ranking.model.Document document = createDocument(solr)
             RankingProcessor ranker = findCreateRanker(id, params)
 
 
-            Document scored_document = ranker.score(q, document)
+            org.lappsgrid.askme.mining.ranking.model.Document scored_document = ranker.score(q, document)
 
             logger.info('Score: {}', scored_document.getScore())
             logger.info('Sending ranked document {} from message {} back to web', command, id)
@@ -62,8 +60,8 @@ class Main extends MessageBox{
         }
 
     }
-    Document createDocument(SolrDocument solr){
-        Document document = new Document()
+    org.lappsgrid.askme.mining.ranking.model.Document createDocument(SolrDocument solr){
+        org.lappsgrid.askme.mining.ranking.model.Document document = new org.lappsgrid.askme.mining.ranking.model.Document()
         ['id', 'pmid', 'pmc', 'doi', 'year', 'path'].each { field ->
             document.setProperty(field, solr.getFieldValue(field))
         }

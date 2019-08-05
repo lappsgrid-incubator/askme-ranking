@@ -1,13 +1,13 @@
-package org.lappsgrid.eager.mining.ranking
+package org.lappsgrid.askme.mining.ranking
 
-import org.lappsgrid.eager.mining.scoring.ConsecutiveTermEvaluator
-import org.lappsgrid.eager.mining.scoring.FirstSentenceEvaluator
-import org.lappsgrid.eager.mining.scoring.PercentageOfTermsEvaluator
-import org.lappsgrid.eager.mining.scoring.ScoringAlgorithm
-import org.lappsgrid.eager.mining.scoring.SentenceCountEvaluator
-import org.lappsgrid.eager.mining.scoring.TermFrequencyEvaluator
-import org.lappsgrid.eager.mining.scoring.TermOrderEvaluator
-import org.lappsgrid.eager.mining.scoring.TermPositionEvaluator
+import org.lappsgrid.askme.mining.scoring.ConsecutiveTermEvaluator
+import org.lappsgrid.askme.mining.scoring.FirstSentenceEvaluator
+import org.lappsgrid.askme.mining.scoring.PercentageOfTermsEvaluator
+import org.lappsgrid.askme.mining.scoring.ScoringAlgorithm
+import org.lappsgrid.askme.mining.scoring.SentenceCountEvaluator
+import org.lappsgrid.askme.mining.scoring.TermFrequencyEvaluator
+import org.lappsgrid.askme.mining.scoring.TermOrderEvaluator
+import org.lappsgrid.askme.mining.scoring.TermPositionEvaluator
 
 /**
  *
