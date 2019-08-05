@@ -35,12 +35,12 @@ class ConsecutiveTermEvaluatorTest extends TestBase {
 
     @Test
     void twoSpans() {
-        closeEnough(4.0f/5.0f, makeSection('a b x a b'))
+        closeEnough(4.0f/5.0f, makeSection('a b x a b').text)
     }
 
     @Test
     void twoSpansofConsecutiveTerms() {
-        closeEnough(5.0/9.0,makeSection('a b x x b x a b c'))
+        closeEnough(5.0/9.0,makeSection('a b x x b x a b c').text)
     }
 
 }
