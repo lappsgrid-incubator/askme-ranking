@@ -1,7 +1,6 @@
-package org.lappsgrid.eager.mining.ranking.model
+package org.lappsgrid.askme.mining.ranking.model
 
 import org.lappsgrid.eager.mining.model.Section
-import org.lappsgrid.serialization.lif.Container
 
 /**
  *
