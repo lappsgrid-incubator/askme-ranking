@@ -2,14 +2,15 @@ package org.lappsgrid.eager.mining.ranking
 
 import groovy.util.logging.Slf4j
 import org.apache.solr.common.SolrDocument
-import org.apache.solr.common.SolrDocumentList
-import org.lappsgrid.eager.mining.api.Query
-import org.lappsgrid.eager.mining.core.json.Serializer
-import org.lappsgrid.eager.mining.ranking.model.Document
+
 import org.lappsgrid.rabbitmq.Message
 import org.lappsgrid.rabbitmq.topic.MessageBox
 import org.lappsgrid.rabbitmq.topic.PostOffice
+
+import org.lappsgrid.eager.mining.api.Query
+import org.lappsgrid.eager.mining.ranking.model.Document
 import org.lappsgrid.eager.mining.model.Section
+
 
 
 
@@ -33,7 +34,10 @@ class Main extends MessageBox{
     void recv(Message message){
         String id = message.getId()
         String command = message.getCommand()
-        if(command == "remove_ranking_processor"){
+        if(message.getBody() == 'EXIT') {
+            shutdown()
+        }
+        else if(command == "remove_ranking_processor"){
             ranking_processors.remove(id)
             logger.info('Removed ranking processor {}',id)
         }
@@ -76,6 +80,12 @@ class Main extends MessageBox{
         }
         RankingProcessor ranker = ranking_processors."${id}"
         return ranker
+    }
+    void shutdown(){
+        logger.info('Received shutdown message, terminating askme-ranking')
+        po.close()
+        logger.info('askme-ranking terminated')
+        System.exit(0)
     }
 
 
