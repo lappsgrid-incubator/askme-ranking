@@ -2,6 +2,7 @@ package org.lappsgrid.askme.mining.ranking
 
 import groovy.util.logging.Slf4j
 import org.apache.solr.common.SolrDocument
+import org.lappsgrid.askme.mining.ranking.model.Document
 import org.lappsgrid.rabbitmq.Message
 import org.lappsgrid.rabbitmq.topic.MessageBox
 import org.lappsgrid.rabbitmq.topic.PostOffice
@@ -32,7 +33,7 @@ class Main extends MessageBox{
     void recv(Message message){
         String id = message.getId()
         String command = message.getCommand()
-        if(message.getBody() == 'EXIT') {
+        if(message.getCommand() == 'EXIT' || message.getCommand() == 'QUIT') {
             shutdown()
         }
         else if(command == "remove_ranking_processor"){
@@ -46,11 +47,11 @@ class Main extends MessageBox{
             Query q = dq.query
             SolrDocument solr = dq.document
 
-            org.lappsgrid.askme.mining.ranking.model.Document document = createDocument(solr)
+            Document document = createDocument(solr)
             RankingProcessor ranker = findCreateRanker(id, params)
 
 
-            org.lappsgrid.askme.mining.ranking.model.Document scored_document = ranker.score(q, document)
+            Document scored_document = ranker.score(q, document)
 
             logger.info('Score: {}', scored_document.getScore())
             logger.info('Sending ranked document {} from message {} back to web', command, id)
@@ -60,8 +61,9 @@ class Main extends MessageBox{
         }
 
     }
-    org.lappsgrid.askme.mining.ranking.model.Document createDocument(SolrDocument solr){
-        org.lappsgrid.askme.mining.ranking.model.Document document = new org.lappsgrid.askme.mining.ranking.model.Document()
+
+    Document createDocument(SolrDocument solr){
+        Document document = new Document()
         ['id', 'pmid', 'pmc', 'doi', 'year', 'path'].each { field ->
             document.setProperty(field, solr.getFieldValue(field))
         }
@@ -80,9 +82,9 @@ class Main extends MessageBox{
         return ranker
     }
     void shutdown(){
-        logger.info('Received shutdown message, terminating askme-ranking')
+        logger.info('Received shutdown message, terminating Ranking service')
         po.close()
-        logger.info('askme-ranking terminated')
+        logger.info('Ranking service terminated')
         System.exit(0)
     }
 
