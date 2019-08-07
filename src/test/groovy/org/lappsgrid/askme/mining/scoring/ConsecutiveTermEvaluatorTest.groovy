@@ -1,7 +1,6 @@
-package org.lappsgrid.eager.mining.scoring
+package org.lappsgrid.askme.mining.scoring
 
 import org.junit.*
-import org.lappsgrid.eager.mining.api.Query
 
 //import static org.junit.Assert.*
 

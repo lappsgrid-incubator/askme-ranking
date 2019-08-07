@@ -1,4 +1,4 @@
-package org.lappsgrid.eager.mining.scoring
+package org.lappsgrid.askme.mining.scoring
 
 import org.junit.After
 import org.junit.Before

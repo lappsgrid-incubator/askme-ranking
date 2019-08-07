@@ -1,4 +1,4 @@
-package org.lappsgrid.eager.mining.scoring
+package org.lappsgrid.askme.mining.scoring
 
 import org.junit.After
 import org.junit.Before
@@ -7,7 +7,7 @@ import org.junit.Test
 import org.lappsgrid.eager.mining.api.Query
 import org.lappsgrid.eager.mining.core.json.Serializer
 import org.lappsgrid.eager.mining.model.Token
-import org.lappsgrid.eager.mining.ranking.model.Document
+import org.lappsgrid.askme.mining.ranking.model.Document
 
 /**
  *
