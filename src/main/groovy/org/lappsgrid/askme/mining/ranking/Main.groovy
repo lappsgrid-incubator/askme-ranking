@@ -32,15 +32,16 @@ class Main extends MessageBox{
 
     void recv(Message message){
         String id = message.getId()
+        logger.info('Received Message {}', id)
         String command = message.getCommand()
-        if(message.getCommand() == 'EXIT' || message.getCommand() == 'QUIT') {
+        if(command == 'EXIT' || command == 'QUIT') {
             shutdown()
         }
         else if(command == "remove_ranking_processor"){
             ranking_processors.remove(id)
             logger.info('Removed ranking processor {}',id)
         }
-        else {
+        else if(checkMessage(message)){
             logger.info("Received document {} from query {}", command, id)
             Object params = message.getParameters()
             Object dq = message.body
@@ -58,6 +59,9 @@ class Main extends MessageBox{
             message.setBody(scored_document)
             message.setRoute([WEB_MBOX])
             po.send(message)
+        }
+        else {
+            logger.info("Message {} terminated", message.getId())
         }
 
     }
@@ -81,6 +85,57 @@ class Main extends MessageBox{
         RankingProcessor ranker = ranking_processors."${id}"
         return ranker
     }
+    //Checks if:
+    // 1) Message body is Map
+    // 2) body.document is not null TODO: check to see if not SolrDocument
+    // 3) body.query is not null TODO: check to see if not Query
+    // 4) Message parameters is not null
+    // 5) Message command is not null
+    boolean checkMessage(Message message) {
+        Map error_check = [:]
+        error_check.origin = "Ranking"
+        error_check.messageId = message.getId()
+        boolean error_flag = false
+        if (message.body.getClass() != LinkedHashMap) {
+            logger.info('ERROR: Body of Message {} is {}, expected Map', message.getId(), message.body.getClass().toString())
+            error_check.body = 'REQUIRES MAP (given ' + message.body.getClass().toString() + ')'
+            error_flag = true
+        } else {
+            Object dq = message.body
+            /*
+            if (!dq.document) {
+                logger.info('ERROR: Body.document of Message {} is {}, expected SolrDocument', message.getId(), message.body.document.getClass().toString())
+                error_check.bodyDoc = 'REQUIRES SolrDocument (given ' + message.body.document.getClass().toString() + ')'
+                error_flag = true
+            }
+             */
+            if (!dq.query) {
+                logger.info('ERROR: Body.query of Message {} is {}, expected Query', message.getId(), message.body.query.getClass().toString())
+                error_check.bodyQuery = 'REQUIRES Query (given ' + message.body.query.getClass().toString() + ')'
+                error_flag = true
+            }
+        }
+        if (!message.getParameters()) {
+            logger.info('ERROR: Parameters of Message {} is empty', message.getId())
+            error_check.params = 'MISSING'
+            error_flag = true
+        }
+        if (!message.getCommand()) {
+            logger.info('ERROR: Document number (command) of Message {} is empty', message.getId())
+            error_check.command = 'MISSING'
+            error_flag = true
+        }
+        if(error_flag){
+            logger.info('Notifying Web service of error')
+            Message error_message = new Message()
+            error_message.setCommand('ERROR')
+            error_message.setBody(error_check)
+            error_message.route('web.mailbox')
+            po.send(error_message)
+        }
+        return !error_flag
+    }
+
     void shutdown(){
         logger.info('Received shutdown message, terminating Ranking service')
         po.close()
