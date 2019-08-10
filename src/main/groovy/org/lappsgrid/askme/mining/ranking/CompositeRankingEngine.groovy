@@ -1,6 +1,7 @@
 package org.lappsgrid.askme.mining.ranking
 
 import groovy.util.logging.Slf4j
+import org.lappsgrid.askme.mining.ranking.model.Document
 import org.lappsgrid.eager.mining.api.Query
 import org.lappsgrid.askme.mining.scoring.ScoringAlgorithm
 import org.lappsgrid.askme.mining.scoring.WeightedAlgorithm
@@ -81,7 +82,7 @@ class CompositeRankingEngine {
     }
 
     //Old ranking algorithm
-    List<org.lappsgrid.askme.mining.ranking.model.Document> rankOld(Query query, List<org.lappsgrid.askme.mining.ranking.model.Document> documents) {
+    List<Document> rankOld(Query query, List<Document> documents) {
         engines.each { String key, RankingEngine engine ->
             logger.info("Ranking {}", key)
             engine.rank(query, documents)
@@ -91,7 +92,7 @@ class CompositeRankingEngine {
     }
 
     //New ranking algorithm, used with RankingProcessor
-    org.lappsgrid.askme.mining.ranking.model.Document rank(Query query, org.lappsgrid.askme.mining.ranking.model.Document document) {
+    Document rank(Query query, Document document) {
         engines.each { String key, RankingEngine engine ->
             logger.info("Scoring {}", key)
             engine.scoreDocument(query, document)

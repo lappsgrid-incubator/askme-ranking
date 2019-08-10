@@ -4,68 +4,74 @@ import groovy.util.logging.Slf4j
 import org.apache.solr.common.SolrDocument
 import org.lappsgrid.askme.mining.ranking.model.Document
 import org.lappsgrid.rabbitmq.Message
+import org.lappsgrid.rabbitmq.topic.MailBox
 import org.lappsgrid.rabbitmq.topic.MessageBox
 import org.lappsgrid.rabbitmq.topic.PostOffice
 
 import org.lappsgrid.eager.mining.api.Query
 import org.lappsgrid.eager.mining.model.Section
-
-
+import org.lappsgrid.serialization.Serializer
 
 
 @Slf4j('logger')
-class Main extends MessageBox{
-
+class Main {
     static final String BOX = 'ranking.mailbox'
     static final String WEB_MBOX = 'web.mailbox'
     static final String HOST = "rabbitmq.lappsgrid.org"
     static final String EXCHANGE = "org.lappsgrid.query"
-    PostOffice po = new PostOffice(EXCHANGE, HOST)
+    static final PostOffice po = new PostOffice(EXCHANGE, HOST)
     Stanford nlp = new Stanford()
-    Map ranking_processors = [:]
-
+    MailBox box
 
     Main(){
-        super(EXCHANGE, BOX)
-
+        //super(EXCHANGE, BOX)
     }
+    void run(Object lock) {
+        box = new MailBox(EXCHANGE, BOX, HOST) {
+            Map ranking_processors = [:]
+            @Override
+            void recv(String s) {
+                Message message = Serializer.parse(s, Message)
+                String id = message.getId()
+                String command = message.getCommand()
 
-    void recv(Message message){
-        String id = message.getId()
-        logger.info('Received Message {}', id)
-        String command = message.getCommand()
-        if(command == 'EXIT' || command == 'QUIT') {
-            shutdown()
+                logger.info('Received Message {}', id)
+                if (command == 'EXIT' || command == 'QUIT') {
+                    shutdown(lock)
+                }
+                else if (command == "remove_ranking_processor") {
+                    ranking_processors.remove(id)
+                    logger.info('Removed ranking processor {}', id)
+                }
+                else {
+                    logger.info("Received document {} from query {}", command, id)
+                    Object dq = message.body
+                    Query q = dq.query
+
+                    Object params = message.getParameters()
+                    SolrDocument solr = dq.document
+
+
+                    Document document = createDocument(solr)
+                    RankingProcessor ranker = findCreateRanker(id, params, ranking_processors)
+
+
+                    Document scored_document = ranker.score(q, document)
+
+                    logger.info('Score: {}', scored_document.getScore())
+                    logger.info('Sending ranked document {} from message {} back to web', command, id)
+                    message.setBody(scored_document)
+                    message.setRoute([WEB_MBOX])
+                    po.send(message)
+                }
+            }
         }
-        else if(command == "remove_ranking_processor"){
-            ranking_processors.remove(id)
-            logger.info('Removed ranking processor {}',id)
-        }
-        else if(checkMessage(message)){
-            logger.info("Received document {} from query {}", command, id)
-            Object params = message.getParameters()
-            Object dq = message.body
-            Query q = dq.query
-            SolrDocument solr = dq.document
-
-            Document document = createDocument(solr)
-            RankingProcessor ranker = findCreateRanker(id, params)
-
-
-            Document scored_document = ranker.score(q, document)
-
-            logger.info('Score: {}', scored_document.getScore())
-            logger.info('Sending ranked document {} from message {} back to web', command, id)
-            message.setBody(scored_document)
-            message.setRoute([WEB_MBOX])
-            po.send(message)
-        }
-        else {
-            logger.info("Message {} terminated", message.getId())
-        }
-
+        synchronized(lock) { lock.wait() }
+        box.close()
+        po.close()
+        logger.info("Ranking service terminated")
+        System.exit(0)
     }
-
     Document createDocument(SolrDocument solr){
         Document document = new Document()
         ['id', 'pmid', 'pmc', 'doi', 'year', 'path'].each { field ->
@@ -78,13 +84,32 @@ class Main extends MessageBox{
         return document
     }
 
-    RankingProcessor findCreateRanker(String id, Map params){
+    RankingProcessor findCreateRanker(String id, Map params, Map ranking_processors){
         if (!ranking_processors.containsKey(id)) {
             ranking_processors."${id}" = new RankingProcessor(params)
         }
         RankingProcessor ranker = ranking_processors."${id}"
+
         return ranker
     }
+
+
+    void shutdown(Object lock){
+        logger.info('Received shutdown message, terminating Ranking service')
+        synchronized(lock) { lock.notify() }
+    }
+
+
+    static void main(String[] args) {
+        logger.info("Starting Ranking service")
+        Object lock = new Object()
+        Thread.start {
+            new Main().run(lock)
+        }
+    }
+
+    //Not currently used
+
     //Checks if:
     // 1) Message body is Map
     // 2) body.document is not null TODO: check to see if not SolrDocument
@@ -134,18 +159,6 @@ class Main extends MessageBox{
             po.send(error_message)
         }
         return !error_flag
-    }
-
-    void shutdown(){
-        logger.info('Received shutdown message, terminating Ranking service')
-        po.close()
-        logger.info('Ranking service terminated')
-        System.exit(0)
-    }
-
-
-    static void main(String[] args) {
-        new Main()
     }
 
 
