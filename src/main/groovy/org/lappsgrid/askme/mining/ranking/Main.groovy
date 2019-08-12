@@ -87,8 +87,10 @@ class Main {
     RankingProcessor findCreateRanker(String id, Map params, Map ranking_processors){
         if (!ranking_processors.containsKey(id)) {
             ranking_processors."${id}" = new RankingProcessor(params)
+            //ranking_processors[id] - new RankingProcessor(params)
         }
         RankingProcessor ranker = ranking_processors."${id}"
+        //RankingProcessor ranker = ranking_processors[id] --> Cannot assign object to ranker
 
         return ranker
     }
