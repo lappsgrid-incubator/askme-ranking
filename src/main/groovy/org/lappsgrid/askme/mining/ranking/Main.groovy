@@ -35,9 +35,17 @@ class Main {
                 String id = message.getId()
                 String command = message.getCommand()
 
-                logger.info('Received Message {}', id)
                 if (command == 'EXIT' || command == 'QUIT') {
+                    logger.info('Received shutdown Message')
                     shutdown(lock)
+                }
+                else if(command == 'PING') {
+                    String origin = message.getBody()
+                    logger.info('Received PING message from {}', origin)
+                    Message response = new Message()
+                    response.setCommand('PONG')
+                    response.setRoute([origin])
+                    po.send(response)
                 }
                 else if (command == "remove_ranking_processor") {
                     ranking_processors.remove(id)
