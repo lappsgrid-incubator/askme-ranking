@@ -15,6 +15,7 @@ import org.lappsgrid.serialization.Serializer
  * 1) Update imports to phase out eager (waiting on askme-core pom)
  * 2) Add exceptions / case statements to recv method?
  * 3) Errors regarding FindCreateRanker
+ * 4) Close ranking processors BEFORE removing them from ranking_processors to have cleaner shutdown?
  */
 
 
