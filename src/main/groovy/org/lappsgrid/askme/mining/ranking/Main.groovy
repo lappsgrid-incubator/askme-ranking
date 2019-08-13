@@ -5,12 +5,17 @@ import org.apache.solr.common.SolrDocument
 import org.lappsgrid.askme.mining.ranking.model.Document
 import org.lappsgrid.rabbitmq.Message
 import org.lappsgrid.rabbitmq.topic.MailBox
-import org.lappsgrid.rabbitmq.topic.MessageBox
 import org.lappsgrid.rabbitmq.topic.PostOffice
-
 import org.lappsgrid.eager.mining.api.Query
 import org.lappsgrid.eager.mining.model.Section
 import org.lappsgrid.serialization.Serializer
+
+/**
+ * TODO:
+ * 1) Update imports to phase out eager (waiting on askme-core pom)
+ * 2) Add exceptions / case statements to recv method?
+ * 3) Errors regarding FindCreateRanker
+ */
 
 
 @Slf4j('logger')
@@ -24,10 +29,12 @@ class Main {
     MailBox box
 
     Main(){
-        //super(EXCHANGE, BOX)
     }
+
     void run(Object lock) {
         box = new MailBox(EXCHANGE, BOX, HOST) {
+            // stores the ranking processor for given ID and parameters
+            // all documents with the same ID will use the same ranking processor
             Map ranking_processors = [:]
             @Override
             void recv(String s) {
@@ -36,19 +43,21 @@ class Main {
                 String command = message.getCommand()
 
                 if (command == 'EXIT' || command == 'QUIT') {
-                    logger.info('Received shutdown Message')
-                    shutdown(lock)
+                    logger.info('Received shutdown message, terminating Ranking service')
+                    synchronized(lock) { lock.notify() }
                 }
                 else if(command == 'PING') {
                     String origin = message.getBody()
-                    logger.info('Received PING message from and sending response to {}', origin)
+                    logger.info('Received PING message from and sending response back to {}', origin)
                     Message response = new Message()
                     response.setBody(BOX)
                     response.setCommand('PONG')
                     response.setRoute([origin])
                     po.send(response)
+                    logger.info('Response PONG sent to {}', origin)
                 }
                 else if (command == "remove_ranking_processor") {
+                    logger.info('Received command to remove ranking processor {}', id)
                     ranking_processors.remove(id)
                     logger.info('Removed ranking processor {}', id)
                 }
@@ -56,22 +65,17 @@ class Main {
                     logger.info("Received document {} from query {}", command, id)
                     Object dq = message.body
                     Query q = dq.query
-
-                    Object params = message.getParameters()
                     SolrDocument solr = dq.document
-
-
                     Document document = createDocument(solr)
+                    Object params = message.getParameters()
                     RankingProcessor ranker = findCreateRanker(id, params, ranking_processors)
-
-
                     Document scored_document = ranker.score(q, document)
-
                     logger.info('Score: {}', scored_document.getScore())
                     logger.info('Sending ranked document {} from message {} back to web', command, id)
                     message.setBody(scored_document)
                     message.setRoute([WEB_MBOX])
                     po.send(message)
+                    logger.info('Ranked document {} from message {} sent back to web',command,id)
                 }
             }
         }
@@ -81,6 +85,7 @@ class Main {
         logger.info("Ranking service terminated")
         System.exit(0)
     }
+
     Document createDocument(SolrDocument solr){
         Document document = new Document()
         ['id', 'pmid', 'pmc', 'doi', 'year', 'path'].each { field ->
@@ -96,18 +101,12 @@ class Main {
     RankingProcessor findCreateRanker(String id, Map params, Map ranking_processors){
         if (!ranking_processors.containsKey(id)) {
             ranking_processors."${id}" = new RankingProcessor(params)
-            //ranking_processors[id] - new RankingProcessor(params)
+            //ranking_processors[id] - new RankingProcessor(params) --> error with null object
         }
         RankingProcessor ranker = ranking_processors."${id}"
         //RankingProcessor ranker = ranking_processors[id] --> Cannot assign object to ranker
 
         return ranker
-    }
-
-
-    void shutdown(Object lock){
-        logger.info('Received shutdown message, terminating Ranking service')
-        synchronized(lock) { lock.notify() }
     }
 
 
@@ -119,7 +118,11 @@ class Main {
         }
     }
 
-    //Not currently used
+    /**
+     *
+     * CODE BELOW NOT CURRENTLY USED
+     *
+
 
     //Checks if:
     // 1) Message body is Map
@@ -138,13 +141,13 @@ class Main {
             error_flag = true
         } else {
             Object dq = message.body
-            /*
+
             if (!dq.document) {
                 logger.info('ERROR: Body.document of Message {} is {}, expected SolrDocument', message.getId(), message.body.document.getClass().toString())
                 error_check.bodyDoc = 'REQUIRES SolrDocument (given ' + message.body.document.getClass().toString() + ')'
                 error_flag = true
             }
-             */
+
             if (!dq.query) {
                 logger.info('ERROR: Body.query of Message {} is {}, expected Query', message.getId(), message.body.query.getClass().toString())
                 error_check.bodyQuery = 'REQUIRES Query (given ' + message.body.query.getClass().toString() + ')'
@@ -172,5 +175,5 @@ class Main {
         return !error_flag
     }
 
-
+    */
 }
