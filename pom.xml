@@ -21,7 +21,7 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <build>
-        <finalName>askme-ranking</finalName>
+        <finalName>service</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
