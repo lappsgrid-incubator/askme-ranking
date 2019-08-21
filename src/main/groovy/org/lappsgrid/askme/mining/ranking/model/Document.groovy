@@ -1,6 +1,7 @@
 package org.lappsgrid.askme.mining.ranking.model
 
-import org.lappsgrid.eager.mining.model.Section
+//import org.lappsgrid.eager.mining.model.Section
+import org.lappsgrid.askme.core.model.Section
 
 /**
  *
