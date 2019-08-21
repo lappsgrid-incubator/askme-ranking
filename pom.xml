@@ -56,7 +56,7 @@
                             </descriptorRefs>
                             <archive>
                                 <manifest>
-                                    <mainClass>org.lappsgrid.askme.mining.ranking.Main</mainClass>
+                                    <mainClass>org.lappsgrid.askme.ranking.Main</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>
@@ -67,11 +67,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>org.lappsgrid.eager.mining</groupId>
-            <artifactId>api</artifactId>
-            <version>1.0.0</version>
-        </dependency>
         <dependency>
             <groupId>org.lappsgrid.askme</groupId>
             <artifactId>core</artifactId>
@@ -97,6 +92,11 @@
             <artifactId>stanford-corenlp</artifactId>
             <version>3.9.2</version>
             <classifier>models</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-solrj</artifactId>
+            <version>7.4.0</version>
         </dependency>
     </dependencies>
 
