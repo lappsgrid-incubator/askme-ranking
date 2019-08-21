@@ -1,6 +1,7 @@
 package org.lappsgrid.askme.mining.scoring
 
-import org.lappsgrid.eager.mining.model.Token
+//import org.lappsgrid.eager.mining.model.Token
+import org.lappsgrid.askme.core.model.Token
 
 /**
  *

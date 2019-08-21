@@ -1,8 +1,11 @@
 package org.lappsgrid.askme.mining.scoring
 
-import org.lappsgrid.eager.mining.api.Query
-import org.lappsgrid.eager.mining.model.Section
-import org.lappsgrid.eager.mining.model.Token
+//import org.lappsgrid.eager.mining.api.Query
+//import org.lappsgrid.eager.mining.model.Section
+//import org.lappsgrid.eager.mining.model.Token
+import org.lappsgrid.askme.core.model.Section
+import org.lappsgrid.askme.core.model.Token
+import org.lappsgrid.askme.core.api.Query
 
 /**
  * Terms that appear earlier in the title are scored higher.

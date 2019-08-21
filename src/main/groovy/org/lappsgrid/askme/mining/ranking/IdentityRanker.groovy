@@ -1,13 +1,13 @@
 package org.lappsgrid.askme.mining.ranking
 
 //import org.lappsgrid.eager.mining.core.solr.LappsDocument
-import org.lappsgrid.eager.mining.api.Ranker
+///import org.lappsgrid.eager.mining.api.Ranker
+
 
 /**
  *
  */
-class IdentityRanker implements Ranker {
-    @Override
+class IdentityRanker{
     List<Object> rank(List<Object> documents) {
         return documents
     }

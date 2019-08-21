@@ -1,7 +1,10 @@
 package org.lappsgrid.askme.mining.scoring
 
-import org.lappsgrid.eager.mining.api.Query
-import org.lappsgrid.eager.mining.model.Section
+//import org.lappsgrid.eager.mining.api.Query
+//import org.lappsgrid.eager.mining.model.Section
+import org.lappsgrid.askme.core.model.Section
+import org.lappsgrid.askme.core.api.Query
+
 
 /**
  * Count the number of times consecutive terms appear in the title.

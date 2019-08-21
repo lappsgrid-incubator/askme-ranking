@@ -1,6 +1,7 @@
 package org.lappsgrid.askme.mining.ranking
 
-import org.lappsgrid.eager.mining.api.Query
+//import org.lappsgrid.eager.mining.api.Query
+import org.lappsgrid.askme.core.api.Query
 import org.lappsgrid.askme.mining.ranking.model.Document
 import java.util.concurrent.Callable
 

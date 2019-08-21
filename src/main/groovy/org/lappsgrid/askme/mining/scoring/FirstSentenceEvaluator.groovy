@@ -1,9 +1,14 @@
 package org.lappsgrid.askme.mining.scoring
 
-import org.lappsgrid.eager.mining.api.Query
-import org.lappsgrid.eager.mining.model.Section
-import org.lappsgrid.eager.mining.model.Sentence
-import org.lappsgrid.eager.mining.model.Token
+//import org.lappsgrid.eager.mining.api.Query
+//import org.lappsgrid.eager.mining.model.Section
+//import org.lappsgrid.eager.mining.model.Sentence
+//import org.lappsgrid.eager.mining.model.Token
+import org.lappsgrid.askme.core.model.Token
+import org.lappsgrid.askme.core.model.Sentence
+import org.lappsgrid.askme.core.model.Section
+
+import org.lappsgrid.askme.core.api.Query
 
 /**
  * Returns the perctage of query terms found in the first sentence.

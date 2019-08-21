@@ -4,9 +4,13 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
-import org.lappsgrid.eager.mining.api.Query
-import org.lappsgrid.eager.mining.core.json.Serializer
-import org.lappsgrid.eager.mining.model.Token
+//import org.lappsgrid.eager.mining.api.Query
+//import org.lappsgrid.eager.mining.core.json.Serializer
+//import org.lappsgrid.eager.mining.model.Token
+
+import org.lappsgrid.serialization.Serializer
+import org.lappsgrid.askme.core.api.Query
+import org.lappsgrid.askme.core.model.Token
 import org.lappsgrid.askme.mining.ranking.model.Document
 
 /**
