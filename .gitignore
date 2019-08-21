@@ -8,3 +8,6 @@ target/
 VERSION
 Version.java
 
+*.jar
+
+
