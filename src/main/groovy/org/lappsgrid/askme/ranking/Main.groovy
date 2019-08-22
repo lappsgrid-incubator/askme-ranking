@@ -2,11 +2,12 @@ package org.lappsgrid.askme.ranking
 
 import groovy.util.logging.Slf4j
 import org.apache.solr.common.SolrDocument
-
+import org.lappsgrid.askme.core.Configuration
 import org.lappsgrid.askme.core.api.Query
 import org.lappsgrid.askme.core.model.Section
 import org.lappsgrid.askme.ranking.model.Document
 import org.lappsgrid.rabbitmq.Message
+import org.lappsgrid.rabbitmq.RabbitMQ
 import org.lappsgrid.rabbitmq.topic.MailBox
 import org.lappsgrid.rabbitmq.topic.PostOffice
 import org.lappsgrid.serialization.Serializer
@@ -24,9 +25,15 @@ import org.lappsgrid.serialization.Serializer
 class Main {
     static final String BOX = 'ranking.mailbox'
     static final String WEB_MBOX = 'web.mailbox'
-    static final String HOST = "rabbitmq.lappsgrid.org"
-    static final String EXCHANGE = "org.lappsgrid.query"
-    static final PostOffice po = new PostOffice(EXCHANGE, HOST)
+//    static final String HOST = "rabbitmq.lappsgrid.org"
+//    static final String EXCHANGE = "org.lappsgrid.query"
+    static final Configuration config = new Configuration()
+    static {
+        System.setProperty(RabbitMQ.USERNAME_PROPERTY, config.USERNAME)
+        System.setProperty(RabbitMQ.PASSWORD_PROPERTY, config.PASSWORD)
+    }
+
+    final PostOffice po = new PostOffice(config.EXCHANGE, config.HOST)
     Stanford nlp = new Stanford()
     MailBox box
 
@@ -34,7 +41,7 @@ class Main {
     }
 
     void run(Object lock) {
-        box = new MailBox(EXCHANGE, BOX, HOST) {
+        box = new MailBox(config.EXCHANGE, BOX, config.HOST) {
             // stores the ranking processor for given ID and parameters
             // all documents with the same ID will use the same ranking processor
             Map ranking_processors = [:]
@@ -49,14 +56,13 @@ class Main {
                     synchronized(lock) { lock.notify() }
                 }
                 else if(command == 'PING') {
-                    String origin = message.getBody()
-                    logger.info('Received PING message from and sending response back to {}', origin)
+                    logger.info('Received PING message from and sending response back to {}', message.route[0])
                     Message response = new Message()
-                    response.setBody(BOX)
+                    response.setBody('PONG')
                     response.setCommand('PONG')
-                    response.setRoute([origin])
-                    po.send(response)
-                    logger.info('Response PONG sent to {}', origin)
+                    response.setRoute(message.route)
+                    logger.info('Response PONG sent to {}', response.route[0])
+                    Main.this.po.send(response)
                 }
                 else if (command == "remove_ranking_processor") {
                     logger.info('Received command to remove ranking processor {}', id)
