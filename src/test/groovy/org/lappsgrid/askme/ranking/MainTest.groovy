@@ -20,7 +20,7 @@ public class MainTest
 	static Configuration config
 	Main app
 	Object lock
-	final String MAILBOX = "query-test-mailbox"
+	final String MAILBOX = "ranking-test-mailbox"
 
 	@BeforeClass
 	static void init() {
