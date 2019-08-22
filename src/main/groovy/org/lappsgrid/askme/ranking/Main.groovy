@@ -25,13 +25,7 @@ import org.lappsgrid.serialization.Serializer
 class Main {
     static final String BOX = 'ranking.mailbox'
     static final String WEB_MBOX = 'web.mailbox'
-//    static final String HOST = "rabbitmq.lappsgrid.org"
-//    static final String EXCHANGE = "org.lappsgrid.query"
     static final Configuration config = new Configuration()
-    static {
-        System.setProperty(RabbitMQ.USERNAME_PROPERTY, config.USERNAME)
-        System.setProperty(RabbitMQ.PASSWORD_PROPERTY, config.PASSWORD)
-    }
 
     final PostOffice po = new PostOffice(config.EXCHANGE, config.HOST)
     Stanford nlp = new Stanford()
