@@ -2,6 +2,7 @@ package org.lappsgrid.askme.ranking
 
 import groovy.util.logging.Slf4j
 import org.apache.solr.common.SolrDocument
+import org.apache.solr.common.SolrDocumentList
 import org.lappsgrid.askme.core.Configuration
 import org.lappsgrid.askme.core.api.Query
 import org.lappsgrid.askme.core.model.Section
@@ -11,6 +12,8 @@ import org.lappsgrid.rabbitmq.RabbitMQ
 import org.lappsgrid.rabbitmq.topic.MailBox
 import org.lappsgrid.rabbitmq.topic.PostOffice
 import org.lappsgrid.serialization.Serializer
+import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
 
 /**
  * TODO:
@@ -20,25 +23,28 @@ import org.lappsgrid.serialization.Serializer
  * 4) Close ranking processors BEFORE removing them from ranking_processors to have cleaner shutdown?
  */
 
-
+@CompileStatic
 @Slf4j('logger')
 class Main {
-    static final String BOX = 'ranking.mailbox'
-    static final String WEB_MBOX = 'web.mailbox'
+
     static final Configuration config = new Configuration()
 
     final PostOffice po = new PostOffice(config.EXCHANGE, config.HOST)
     Stanford nlp = new Stanford()
     MailBox box
 
+
     Main(){
+        println config.EXCHANGE
+        println config.HOST
     }
 
     void run(Object lock) {
-        box = new MailBox(config.EXCHANGE, BOX, config.HOST) {
+        box = new MailBox(config.EXCHANGE, 'ranking.mailbox', config.HOST) {
             // stores the ranking processor for given ID and parameters
             // all documents with the same ID will use the same ranking processor
             Map ranking_processors = [:]
+
             @Override
             void recv(String s) {
                 Message message = Serializer.parse(s, Message)
@@ -52,7 +58,7 @@ class Main {
                 else if(command == 'PING') {
                     logger.info('Received PING message from and sending response back to {}', message.route[0])
                     Message response = new Message()
-                    response.setBody('PONG')
+                    response.setBody('ranking.mailbox')
                     response.setCommand('PONG')
                     response.setRoute(message.route)
                     logger.info('Response PONG sent to {}', response.route[0])
@@ -64,28 +70,49 @@ class Main {
                     logger.info('Removed ranking processor {}', id)
                 }
                 else {
-                    logger.info("Received document {} from query {}", command, id)
-                    Object dq = message.body
-                    Query q = dq.query
-                    SolrDocument solr = dq.document
-                    Document document = createDocument(solr)
+                    logger.info("Received documents from query {}", id)
                     Object params = message.getParameters()
-                    RankingProcessor ranker = findCreateRanker(id, params, ranking_processors)
-                    Document scored_document = ranker.score(q, document)
-                    logger.info('Score: {}', scored_document.getScore())
-                    logger.info('Sending ranked document {} from message {} back to web', command, id)
-                    message.setBody(scored_document)
-                    message.setRoute([WEB_MBOX])
-                    po.send(message)
-                    logger.info('Ranked document {} from message {} sent back to web',command,id)
+                    String destination = message.route[0] ?: 'the void'
+                    Map dq = message.body as Map
+
+                    Query query = dq.query as Query
+                    SolrDocumentList solr = dq.document as SolrDocumentList
+
+                    RankingProcessor ranker = new RankingProcessor(params)
+                    List<Document> documents = solrToDoc(solr)
+                    List<Document> sorted_documents = rank(ranker, documents, query)
+
+                    logger.info('Sending ranked documents from message {} back to web', command, id)
+                    message.setBody(sorted_documents)
+
+                    Main.this.po.send(message)
+                    logger.info('Ranked documents from message {} sent back to web',command,id)
                 }
             }
+
+
         }
         synchronized(lock) { lock.wait() }
         box.close()
         po.close()
         logger.info("Ranking service terminated")
         System.exit(0)
+    }
+
+    List<Document> solrToDoc(SolrDocumentList solr){
+        List<Document> doc_list = []
+        solr.each{solr_doc ->
+            doc_list.add(createDocument(solr_doc))
+        }
+        return doc_list
+    }
+
+    List<Document> rank(RankingProcessor ranker, List<Document> documents, Query query) {
+        List<Document> scored_documents = []
+        documents.each{document ->
+            scored_documents.add(ranker.score(query, document))
+        }
+        return scored_documents.sort{a,b -> b.score <=> a.score}
     }
 
     Document createDocument(SolrDocument solr){
@@ -99,7 +126,7 @@ class Main {
         document.setProperty('articleAbstract', abs)
         return document
     }
-
+/*
     RankingProcessor findCreateRanker(String id, Map params, Map ranking_processors){
         if (!ranking_processors.containsKey(id)) {
             ranking_processors."${id}" = new RankingProcessor(params)
@@ -111,7 +138,7 @@ class Main {
         return ranker
     }
 
-
+*/
     static void main(String[] args) {
         logger.info("Starting Ranking service")
         Object lock = new Object()
