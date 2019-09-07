@@ -75,18 +75,18 @@ class Main {
                     String destination = message.route[0] ?: 'the void'
                     Map dq = message.body as Map
 
-                    Query query = dq.query as Query
-                    SolrDocumentList solr = dq.document as SolrDocumentList
+                    Query query = new Query(dq.query)
+                    List<Map> documents = (List) dq.documents
 
                     RankingProcessor ranker = new RankingProcessor(params)
-                    List<Document> documents = solrToDoc(solr)
+//                    List<Document> documents = solrToDoc(solr)
                     List<Document> sorted_documents = rank(ranker, documents, query)
 
                     logger.info('Sending ranked documents from message {} back to web', command, id)
                     message.setBody(sorted_documents)
 
                     Main.this.po.send(message)
-                    logger.info('Ranked documents from message {} sent back to web',command,id)
+                    logger.info('Ranked documents from message {} sent back to {}',message.id, destination)
                 }
             }
 
@@ -99,30 +99,30 @@ class Main {
         System.exit(0)
     }
 
-    List<Document> solrToDoc(SolrDocumentList solr){
-        List<Document> doc_list = []
-        solr.each{solr_doc ->
-            doc_list.add(createDocument(solr_doc))
-        }
-        return doc_list
-    }
+//    List<Document> solrToDoc(SolrDocumentList solr){
+//        List<Document> doc_list = []
+//        solr.each{solr_doc ->
+//            doc_list.add(createDocument(solr_doc))
+//        }
+//        return doc_list
+//    }
 
-    List<Document> rank(RankingProcessor ranker, List<Document> documents, Query query) {
+    List<Document> rank(RankingProcessor ranker, List<Map> documents, Query query) {
         List<Document> scored_documents = []
-        documents.each{document ->
-            scored_documents.add(ranker.score(query, document))
+        documents.each{Map map ->
+            scored_documents.add(ranker.score(query, createDocument(map)))
         }
         return scored_documents.sort{a,b -> b.score <=> a.score}
     }
 
-    Document createDocument(SolrDocument solr){
+    Document createDocument(Map solr){
         Document document = new Document()
         ['id', 'pmid', 'pmc', 'doi', 'year', 'path'].each { field ->
-            document.setProperty(field, solr.getFieldValue(field))
+            document.setProperty(field, solr[field])
         }
-        Section title = nlp.process(solr.getFieldValue('title').toString())
+        Section title = nlp.process(solr['title'].toString())
         document.setProperty('title', title)
-        Section abs = nlp.process(solr.getFieldValue('abstract').toString())
+        Section abs = nlp.process(solr['abstract'].toString())
         document.setProperty('articleAbstract', abs)
         return document
     }
