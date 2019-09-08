@@ -5,6 +5,7 @@ import org.lappsgrid.askme.core.model.Section
 /**
  *
  */
+@Deprecated
 class Document {
     String id
     String pmid

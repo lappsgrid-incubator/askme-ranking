@@ -2,7 +2,7 @@ package org.lappsgrid.askme.ranking
 
 import groovy.util.logging.Slf4j
 import org.lappsgrid.askme.core.api.Query
-import org.lappsgrid.askme.ranking.model.Document
+import org.lappsgrid.askme.core.model.Document
 import org.lappsgrid.askme.scoring.ScoringAlgorithm
 import org.lappsgrid.askme.scoring.WeightedAlgorithm
 

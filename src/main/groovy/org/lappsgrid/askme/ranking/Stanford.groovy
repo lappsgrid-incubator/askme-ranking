@@ -5,22 +5,18 @@ import edu.stanford.nlp.pipeline.CoreDocument
 import edu.stanford.nlp.pipeline.CoreSentence
 import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import edu.stanford.nlp.util.Pair
-
+import groovy.util.logging.Slf4j
 import org.lappsgrid.askme.core.model.Section
 import org.lappsgrid.askme.core.model.Sentence
 import org.lappsgrid.askme.core.model.Token
 import org.lappsgrid.serialization.lif.Annotation
-import org.lappsgrid.askme.core.model.Section
-import org.lappsgrid.askme.core.model.Sentence
-import org.lappsgrid.askme.core.model.Token
 
 /**
  *
  */
-//@Slf4j("logger")
-//@Log4j2('logger')
+@Slf4j("logger")
+@Deprecated
 class Stanford {
-
 
     StanfordCoreNLP pipeline;
 

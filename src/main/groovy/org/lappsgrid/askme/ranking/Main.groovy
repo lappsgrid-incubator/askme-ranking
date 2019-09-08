@@ -4,9 +4,11 @@ import groovy.util.logging.Slf4j
 import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
 import org.lappsgrid.askme.core.Configuration
+import org.lappsgrid.askme.core.api.AskmeMessage
+import org.lappsgrid.askme.core.api.Packet
 import org.lappsgrid.askme.core.api.Query
+import org.lappsgrid.askme.core.model.Document
 import org.lappsgrid.askme.core.model.Section
-import org.lappsgrid.askme.ranking.model.Document
 import org.lappsgrid.rabbitmq.Message
 import org.lappsgrid.rabbitmq.RabbitMQ
 import org.lappsgrid.rabbitmq.topic.MailBox
@@ -30,7 +32,7 @@ class Main {
     static final Configuration config = new Configuration()
 
     final PostOffice po = new PostOffice(config.EXCHANGE, config.HOST)
-    Stanford nlp = new Stanford()
+//    Stanford nlp = new Stanford()
     MailBox box
 
 
@@ -47,7 +49,7 @@ class Main {
 
             @Override
             void recv(String s) {
-                Message message = Serializer.parse(s, Message)
+                AskmeMessage message = Serializer.parse(s, AskmeMessage)
                 String id = message.getId()
                 String command = message.getCommand()
 
@@ -58,7 +60,7 @@ class Main {
                 else if(command == 'PING') {
                     logger.info('Received PING message from and sending response back to {}', message.route[0])
                     Message response = new Message()
-                    response.setBody('ranking.mailbox')
+//                    response.setBody('ranking.mailbox')
                     response.setCommand('PONG')
                     response.setRoute(message.route)
                     logger.info('Response PONG sent to {}', response.route[0])
@@ -73,17 +75,22 @@ class Main {
                     logger.info("Received documents from query {}", id)
                     Object params = message.getParameters()
                     String destination = message.route[0] ?: 'the void'
-                    Map dq = message.body as Map
+//                    Map dq = message.body as Map
+//
+//                    Query query = new Query(dq.query)
+//                    List<Map> documents = (List) dq.documents
 
-                    Query query = new Query(dq.query)
-                    List<Map> documents = (List) dq.documents
+                    Packet packet = message.body
+                    Query query = packet.query
+                    List<Document> documents = packet.documents
 
                     RankingProcessor ranker = new RankingProcessor(params)
 //                    List<Document> documents = solrToDoc(solr)
-                    List<Document> sorted_documents = rank(ranker, documents, query)
+                    //List<Document> sorted_documents = rank(ranker, documents, query)
+                    rank(ranker, packet)
 
                     logger.info('Sending ranked documents from message {} back to web', command, id)
-                    message.setBody(sorted_documents)
+                    //message.setBody(sorted_documents)
 
                     Main.this.po.send(message)
                     logger.info('Ranked documents from message {} sent back to {}',message.id, destination)
@@ -107,14 +114,20 @@ class Main {
 //        return doc_list
 //    }
 
-    List<Document> rank(RankingProcessor ranker, List<Map> documents, Query query) {
+    void rank(RankingProcessor ranker, Packet packet) {
+        packet.documents.each { Document doc ->
+
+        }
+    }
+    List<Document> rank(RankingProcessor ranker, List<Document> documents, Query query) {
         List<Document> scored_documents = []
-        documents.each{Map map ->
-            scored_documents.add(ranker.score(query, createDocument(map)))
+        documents.each{Document doc ->
+            scored_documents.add(ranker.score(query, doc))
         }
         return scored_documents.sort{a,b -> b.score <=> a.score}
     }
 
+/*
     Document createDocument(Map solr){
         Document document = new Document()
         ['id', 'pmid', 'pmc', 'doi', 'year', 'path'].each { field ->
@@ -126,7 +139,6 @@ class Main {
         document.setProperty('articleAbstract', abs)
         return document
     }
-/*
     RankingProcessor findCreateRanker(String id, Map params, Map ranking_processors){
         if (!ranking_processors.containsKey(id)) {
             ranking_processors."${id}" = new RankingProcessor(params)

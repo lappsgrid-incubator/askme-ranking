@@ -1,7 +1,7 @@
 package org.lappsgrid.askme.ranking
 
 import org.lappsgrid.askme.core.api.Query
-import org.lappsgrid.askme.ranking.model.Document
+import org.lappsgrid.askme.core.model.Document
 import java.util.concurrent.Callable
 
 class RankingWorker implements Callable<Document> {

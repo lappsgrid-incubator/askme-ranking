@@ -3,7 +3,7 @@ package org.lappsgrid.askme.ranking
 import groovy.util.logging.Slf4j
 import org.lappsgrid.askme.core.api.Query
 import org.lappsgrid.askme.core.model.Section
-import org.lappsgrid.askme.ranking.model.Document
+import org.lappsgrid.askme.core.model.Document
 import org.lappsgrid.askme.scoring.ScoringAlgorithm
 import org.lappsgrid.askme.scoring.WeightedAlgorithm
 
@@ -87,23 +87,23 @@ class RankingEngine {
         documents.each { Document document ->
             float total = 0.0f
             algorithms.each { algorithm ->
-                logger.info("Calculating Score for {} .", algorithm.name())
+                logger.debug("Calculating Score for {} .", algorithm.name())
                 def field = field(document)
                 float score = 0.0f
                 if (field instanceof String) {
                     score = calculate(algorithm, query, field)
-                    logger.info("Field is string")
+                    logger.trace("Field is string")
                 }
                 else if (field instanceof Section) {
                     score = calculate(algorithm, query, field)
-                    logger.info("Field is section")
+                    logger.trace("Field is section")
 
                 }
                 else if (field instanceof Collection) {
                     field.each { item ->
 //                        score += algorithm.score(query, item)
                         score += calculate(algorithm, query, item)
-                        logger.info("Field is collection")
+                        logger.trace("Field is collection")
 
                     }
                 }
@@ -112,7 +112,7 @@ class RankingEngine {
                 document.addScore(section, algorithm.abbrev(), score)
             }
             document.score += total * weight
-            logger.trace("Document {} {}", document.id, document.score)
+            logger.debug("Document {} {}", document.id, document.score)
         }
     }
 
@@ -120,7 +120,7 @@ class RankingEngine {
         logger.info("Calc score for {}.", algorithm.name())
         float result = algorithm.score(query, field)
         if (Float.isNaN(result)) {
-            logger.debug("NaN weight for {}.", algorithm.name())
+            logger.warn("NaN weight for {}.", algorithm.name())
             return 0f
         }
         return result

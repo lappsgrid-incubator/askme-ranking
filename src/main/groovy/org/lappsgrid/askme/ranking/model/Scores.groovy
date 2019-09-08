@@ -5,6 +5,7 @@ import java.util.function.Consumer
 /**
  *
  */
+@Deprecated
 class Scores implements Iterable<Map.Entry<String,Float>> {
     Map<String,Float> scores = [:]
 

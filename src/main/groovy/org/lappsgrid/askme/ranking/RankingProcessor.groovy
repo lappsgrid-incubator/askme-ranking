@@ -2,7 +2,7 @@ package org.lappsgrid.askme.ranking
 
 import groovy.util.logging.Slf4j
 import org.lappsgrid.askme.core.api.Query
-import org.lappsgrid.askme.ranking.model.Document
+import org.lappsgrid.askme.core.model.Document
 
 import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.Executors
