@@ -49,6 +49,7 @@ class Main {
 
             @Override
             void recv(String s) {
+//                new File("/tmp/ranking.json").text = groovy.json.JsonOutput.prettyPrint(s)
                 AskmeMessage message = Serializer.parse(s, AskmeMessage)
                 String id = message.getId()
                 String command = message.getCommand()
