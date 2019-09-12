@@ -82,9 +82,10 @@ class Main {
 //                    List<Document> documents = solrToDoc(solr)
                     List<Document> sorted_documents = rank(ranker, documents, query)
 
-                    logger.info('Sending ranked documents from message {} back to web', command, id)
+                    logger.info('Sending ranked documents from message {} back to web', id)
                     message.setBody(sorted_documents)
-
+                    message.setCommand(Serializer.toJson(query))
+                    logger.info('Command: {}', message.getCommand())
                     Main.this.po.send(message)
                     logger.info('Ranked documents from message {} sent back to {}',message.id, destination)
                 }
