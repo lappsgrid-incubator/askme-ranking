@@ -1,21 +1,16 @@
 package org.lappsgrid.askme.ranking
 
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.apache.solr.common.SolrDocument
-import org.apache.solr.common.SolrDocumentList
 import org.lappsgrid.askme.core.Configuration
 import org.lappsgrid.askme.core.api.AskmeMessage
 import org.lappsgrid.askme.core.api.Packet
 import org.lappsgrid.askme.core.api.Query
 import org.lappsgrid.askme.core.model.Document
-import org.lappsgrid.askme.core.model.Section
 import org.lappsgrid.rabbitmq.Message
-import org.lappsgrid.rabbitmq.RabbitMQ
 import org.lappsgrid.rabbitmq.topic.MailBox
 import org.lappsgrid.rabbitmq.topic.PostOffice
 import org.lappsgrid.serialization.Serializer
-import groovy.transform.CompileStatic
-import groovy.transform.TypeChecked
 
 /**
  * TODO:
@@ -82,17 +77,18 @@ class Main {
 //                    List<Map> documents = (List) dq.documents
 
                     Packet packet = message.body
-                    Query query = packet.query
-                    List<Document> documents = packet.documents
+//                    Query query = packet.query
+//                    List<Document> documents = packet.documents
 
                     RankingProcessor ranker = new RankingProcessor(params)
 //                    List<Document> documents = solrToDoc(solr)
                     //List<Document> sorted_documents = rank(ranker, documents, query)
                     rank(ranker, packet)
 
-                    logger.info('Sending ranked documents from message {} back to web', command, id)
-                    //message.setBody(sorted_documents)
-
+                    logger.info('Sending ranked documents from message {} back to web', id)
+//                    message.setBody(sorted_documents)
+//                    message.setCommand(Serializer.toJson(query))
+                    logger.info('Command: {}', message.getCommand())
                     Main.this.po.send(message)
                     logger.info('Ranked documents from message {} sent back to {}',message.id, destination)
                 }
@@ -116,10 +112,12 @@ class Main {
 //    }
 
     void rank(RankingProcessor ranker, Packet packet) {
+        List<Document> scored = []
         packet.documents.each { Document doc ->
-
+            scored.add(ranker.score(packet.query, doc))
         }
     }
+
     List<Document> rank(RankingProcessor ranker, List<Document> documents, Query query) {
         List<Document> scored_documents = []
         documents.each{Document doc ->

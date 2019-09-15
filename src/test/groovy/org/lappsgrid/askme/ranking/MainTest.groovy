@@ -2,7 +2,8 @@ package org.lappsgrid.askme.ranking;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.BeforeClass
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lappsgrid.askme.core.Configuration;
 import org.lappsgrid.rabbitmq.Message;
@@ -15,6 +16,7 @@ import static org.junit.Assert.*;
 /**
  *
  */
+@Ignore
 public class MainTest
 {
 	static Configuration config
