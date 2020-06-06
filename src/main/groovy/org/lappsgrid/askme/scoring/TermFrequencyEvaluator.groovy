@@ -16,6 +16,9 @@ class TermFrequencyEvaluator implements ScoringAlgorithm {
                 ++count
             }
         }
+        if (count == 0) {
+            return 0.0f
+        }
         return ((float)count) / section.tokens.size()
     }
 

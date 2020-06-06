@@ -21,6 +21,10 @@ class SentenceCountEvaluator implements ScoringAlgorithm {
                 }
             }
         }
+        if (section.sentences == null || section.sentences.size() == 0) {
+            return 0.0f
+        }
+
         return ((float) count) / section.sentences.size()
     }
 

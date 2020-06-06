@@ -23,7 +23,7 @@ class CompositeRankingEngine {
     CompositeRankingEngine(Map params) {
         logger.info("Initializing engine: {}", params.size())
         params.each { String key, String value ->
-            logger.info("key: {} value: {}", key, value)
+            logger.debug("key: {} value: {}", key, value)
             Triple triple = new Triple(key)
             if (triple.control == 'checkbox') {
                 //FIXME Shouldn't we check if the box has been selected?
@@ -33,8 +33,8 @@ class CompositeRankingEngine {
                     RankingEngine engine = engines[triple.section]
                     if (engine == null) {
                         logger.trace("adding ranking engine for {}", triple.section)
-                        engine = new RankingEngine()
-                        engine.section = triple.section
+                        engine = new RankingEngine(triple.section)
+//                        engine.section = triple.section
                         engine.field = fieldExtractors[triple.section]
                         engines.put(triple.section, engine)
                     }
@@ -43,7 +43,7 @@ class CompositeRankingEngine {
                     //String weight = value
                     String weight = params.get(weightKey)
                     if (weight) {
-                        logger.debug("Adding algorithm {}:{}", algorithm.abbrev(), weight)
+                        logger.trace("Adding algorithm {}:{}", algorithm.abbrev(), weight)
                         engine.add(new WeightedAlgorithm(algorithm, weight as float))
                     }
                     else {
@@ -59,7 +59,7 @@ class CompositeRankingEngine {
             else if (triple.id == 'x') {
                 RankingEngine engine = engines[triple.section]
                 if (engine) {
-                    logger.info("weight for {} is {}", triple.section, value)
+                    logger.debug("weight for {} is {}", triple.section, value)
                     engine.weight = value as float
                 }
                 else {
@@ -68,15 +68,15 @@ class CompositeRankingEngine {
                 }
             }
             else {
-                logger.debug("Ignoring triple {}:{}", triple.section, triple.control)
+                logger.trace("Ignoring triple {}:{}", triple.section, triple.control)
             }
 
         }
         logger.info("Initialized {} engines", engines.size())
         engines.each { String section, RankingEngine engine ->
-            logger.debug(engine.section)
+            logger.trace(engine.section)
             engine.algorithms.each { WeightedAlgorithm algorithm ->
-                logger.debug("{} : {}", algorithm.abbrev(), algorithm.weight)
+                logger.trace("{} : {}", algorithm.abbrev(), algorithm.weight)
             }
         }
     }
@@ -94,7 +94,7 @@ class CompositeRankingEngine {
     //New ranking algorithm, used with RankingProcessor
     Document rank(Query query, Document document) {
         engines.each { String key, RankingEngine engine ->
-            logger.info("Scoring {}", key)
+            logger.trace("Scoring {}", key)
             engine.scoreDocument(query, document)
         }
         //logger.debug("Sorting {} documents.", documents.size())

@@ -1,7 +1,10 @@
 package org.lappsgrid.askme.ranking
 
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics
 import org.lappsgrid.askme.core.api.Query
+import org.lappsgrid.askme.core.metrics.Tags
 import org.lappsgrid.askme.core.model.Document
 
 import java.util.concurrent.ExecutorCompletionService
@@ -12,20 +15,22 @@ import java.util.concurrent.Future
 class RankingProcessor{
 
     ExecutorCompletionService<Document> executor
-    CompositeRankingEngine engines
+//    CompositeRankingEngine engines
 
 
-    RankingProcessor(Map params) {
-        this(Runtime.getRuntime().availableProcessors(), params)
+    RankingProcessor(MeterRegistry registry) {
+        this(Runtime.getRuntime().availableProcessors(), registry)
      }
 
 
-    RankingProcessor(int nThreads, Map params) {
+    RankingProcessor(int nThreads, MeterRegistry registry) {
         executor = new ExecutorCompletionService<>(Executors.newFixedThreadPool(nThreads))
-        engines = new CompositeRankingEngine(params)
+        new ExecutorServiceMetrics(executor, "ranking.executor", Tags.RANK).bindTo(registry)
+//        engines = new CompositeRankingEngine(params)
     }
 
-    List<Document> rank(Query query, List<Document> documents) {
+    List<Document> rank(Query query, Map params, List<Document> documents) {
+        CompositeRankingEngine engines = new CompositeRankingEngine(params)
         List<Document> result = new ArrayList<>()
         List<Future<Document>> futures = new ArrayList<>()
 
@@ -51,17 +56,20 @@ class RankingProcessor{
         return result.sort { a,b -> b.score <=> a.score }
     }
 
-    Document score(Query query, Document document){
+    Document score(Query query, Map params, Document document){
+        CompositeRankingEngine engines = new CompositeRankingEngine(params)
         Document ranked_document = new Document()
         Future<Document> future = executor.submit(new RankingWorker(document, engines, query))
-        Future<Document> f2 = executor.take()
+//        Future<Document> f2 = executor.take()
         try {
-            ranked_document = f2.get()
+            ranked_document = future.get()
         }
         catch (Throwable e) {
             logger.error("Unable to get future document.", e)
         }
         return ranked_document
+//        document.scores = ranked_document.scores
+//        document.score = ranked_document.score
     }
 
 

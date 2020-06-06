@@ -20,7 +20,9 @@
 	</appender>
 	
 	<logger name="org.lappsgrid" level="info"/>
-	<logger name ="org.lappsgrid.askme" level="trace"/>
+	<logger name ="org.lappsgrid.askme" level="info"/>
+	<logger name="org.lappsgrid.askme.ranking" level="debug"/>
+	<logger name="org.lappsgrid.askme.ranking.RankingEngine" level="debug"/>
 
 	<root level="warn">
 		<appender-ref ref="STDOUT" />

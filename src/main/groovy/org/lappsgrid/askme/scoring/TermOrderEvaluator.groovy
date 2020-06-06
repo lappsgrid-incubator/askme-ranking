@@ -24,6 +24,9 @@ class TermOrderEvaluator implements ScoringAlgorithm {
                 current = index
             }
         }
+        if (terms == 0) {
+            return 0.0f
+        }
         return ((float) score) / ((float)terms)
     }
 

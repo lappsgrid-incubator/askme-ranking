@@ -1,5 +1,14 @@
-package org.lappsgrid.askme.ranking;
+package org.lappsgrid.askme.ranking
 
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Timer
+import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics
+import io.micrometer.prometheus.PrometheusConfig
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass
@@ -29,10 +38,10 @@ public class MainTest
 		config = new Configuration()
 	}
 
-	@Before
+//	@Before
 	void setup() {
 		lock = new Object()
-		app = new Main()
+//		app = new Main()
 		Thread.start {
 			println "Running the app"
 			app.run(lock)
@@ -80,4 +89,23 @@ public class MainTest
 		assert passed
 	}
 
+	@Test
+	void metrics() {
+		PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+//		registry.
+		Counter counter = registry.counter("counts", "test", "groovy")
+		Timer timer = registry.timer("timers", "test", "groovy")
+//		long start = System.currentTimeMillis()
+//		long duration = System.currentTimeMillis() - start
+		timer.record {
+			new ClassLoaderMetrics().bindTo(registry)
+			new JvmMemoryMetrics().bindTo(registry)
+			new JvmGcMetrics().bindTo(registry)
+			new ProcessorMetrics().bindTo(registry)
+			new JvmThreadMetrics().bindTo(registry)
+		}
+		counter.increment()
+		println "Scraping"
+		println registry.scrape()
+	}
 }

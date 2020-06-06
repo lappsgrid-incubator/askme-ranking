@@ -114,10 +114,11 @@ class RankingEngine {
             document.score += total * weight
             logger.debug("Document {} {}", document.id, document.score)
         }
+        return documents.sort()
     }
 
     float calculate(WeightedAlgorithm algorithm, Query query, Section field) {
-        logger.info("Calc score for {}.", algorithm.name())
+        logger.trace("Calc score for {}.", algorithm.name())
         float result = algorithm.score(query, field)
         if (Float.isNaN(result)) {
             logger.warn("NaN weight for {}.", algorithm.name())
