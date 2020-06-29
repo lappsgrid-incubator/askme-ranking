@@ -62,6 +62,9 @@ class Main {
 
     void run(Object lock) {
         init()
+        logger.info("Rabbit   : {}", config.HOST)
+        logger.info("Exchange : {}", config.EXCHANGE)
+        logger.info("Address  : {}", config.RANKING_MBOX)
         box = new MailBox(config.EXCHANGE, config.RANKING_MBOX, config.HOST) {
             // stores the ranking processor for given ID and parameters
             // all documents with the same ID will use the same ranking processor
