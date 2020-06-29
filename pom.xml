@@ -18,7 +18,7 @@
 
     <groupId>org.lappsgrid.askme</groupId>
     <artifactId>ranking</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <build>
         <finalName>service</finalName>
@@ -94,12 +94,12 @@
         <dependency>
             <groupId>org.lappsgrid.askme</groupId>
             <artifactId>core</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.lappsgrid</groupId>
             <artifactId>rabbitmq</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.lappsgrid</groupId>

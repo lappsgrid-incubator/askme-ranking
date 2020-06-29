@@ -3,6 +3,7 @@ package org.lappsgrid.askme.ranking
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Timer
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
@@ -35,19 +36,16 @@ class Main {
 
     static final Configuration config = new Configuration()
 
+    final PostOffice po = new PostOffice(config.EXCHANGE, config.HOST)
+
     final PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    final PostOffice po = new PostOffice(config.EXCHANGE, config.HOST)
-//    Stanford nlp = new Stanford()
     MailBox box
     RankingProcessor ranker
     Counter documentsRanked
     Counter messagesReceived
-
-//    Main(){
-//        println config.EXCHANGE
-//        println config.HOST
-//    }
+    Timer timer
+    Timer documentTimer
 
     void init() {
         new ClassLoaderMetrics().bindTo(registry)
@@ -56,13 +54,15 @@ class Main {
         new ProcessorMetrics().bindTo(registry)
         new JvmThreadMetrics().bindTo(registry)
         ranker = new RankingProcessor(registry)
-        documentsRanked = registry.counter("documents.ranked", Tags.RANK)
-        messagesReceived = registry.counter("messages.received", Tags.RANK, Tags.RABBIT)
+        documentsRanked = registry.counter("documents_ranked", "service", Tags.RANK)
+        messagesReceived = registry.counter("messages", "service", Tags.RANK)
+        timer = registry.timer("ranking_times")
+        documentTimer = registry.timer("document_ranking_times")
     }
 
     void run(Object lock) {
         init()
-        box = new MailBox(config.EXCHANGE, 'ranking.mailbox', config.HOST) {
+        box = new MailBox(config.EXCHANGE, config.RANKING_MBOX, config.HOST) {
             // stores the ranking processor for given ID and parameters
             // all documents with the same ID will use the same ranking processor
             Map ranking_processors = [:]
@@ -81,19 +81,17 @@ class Main {
                 }
                 else if(command == 'PING') {
                     logger.info('Received PING message from and sending response back to {}', message.route[0])
-                    Message response = new Message()
-//                    response.setBody('ranking.mailbox')
-                    response.setCommand('PONG')
-                    response.setRoute(message.route)
-                    logger.info('Response PONG sent to {}', response.route[0])
-                    Main.this.po.send(response)
+                    message.setCommand('PONG')
+                    logger.info('Response PONG sent to {}',  message.route[0])
+                    Main.this.po.send(message)
                 }
-                else if (command == "metrics") {
-                    logger.trace("Sending metrics to {}", message.route[0])
+                else if (command == "METRICS") {
                     Message response = new Message()
-                    response.command("ok")
-                    response.route(message.route[0])
+                    response.id = message.id
+                    response.setCommand('ok')
                     response.body(registry.scrape())
+                    response.route = message.route
+                    logger.trace('Metrics sent to {}', response.route[0])
                     Main.this.po.send(response)
                 }
                 else if (command == "remove_ranking_processor") {
@@ -103,11 +101,13 @@ class Main {
                 }
                 else {
                     logger.info("Received documents from query {}", id)
-                    Object params = message.getParameters()
+                    Map params = message.getParameters()
                     String destination = message.route[0] ?: 'the void'
                     Packet packet = message.body
 //                    RankingProcessor ranker = new RankingProcessor(params)
-                    rank(ranker, params, packet)
+                    timer.record {
+                        rank(ranker, params, packet)
+                    }
 
                     logger.info('Sending ranked documents from message {} back to web', id)
                     logger.info('Command: {}', message.getCommand())
@@ -129,7 +129,7 @@ class Main {
         List<Document> scored = []
         packet.documents.each { Document doc ->
             logger.trace("Before Doc {}: {}", doc.id, doc.score)
-            Document scoredDoc = ranker.score(packet.query, params, doc)
+            Document scoredDoc = documentTimer.recordCallable { ranker.score(packet.query, params, doc) }
             logger.trace("Scored Doc {}: {}", scoredDoc.id, scoredDoc.score)
             scored.add(scoredDoc)
 //            ranker.score(packet.query, doc)

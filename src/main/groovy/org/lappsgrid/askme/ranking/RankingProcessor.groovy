@@ -8,6 +8,7 @@ import org.lappsgrid.askme.core.metrics.Tags
 import org.lappsgrid.askme.core.model.Document
 
 import java.util.concurrent.ExecutorCompletionService
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
@@ -24,8 +25,9 @@ class RankingProcessor{
 
 
     RankingProcessor(int nThreads, MeterRegistry registry) {
-        executor = new ExecutorCompletionService<>(Executors.newFixedThreadPool(nThreads))
-        new ExecutorServiceMetrics(executor, "ranking.executor", Tags.RANK).bindTo(registry)
+        ExecutorService executorService = Executors.newFixedThreadPool(nThreads)
+        executor = new ExecutorCompletionService<>(executorService)
+//        new ExecutorServiceMetrics(executorService, "ranking.executor", Tags.RANK).bindTo(registry)
 //        engines = new CompositeRankingEngine(params)
     }
 
