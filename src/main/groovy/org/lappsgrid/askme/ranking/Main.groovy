@@ -112,8 +112,8 @@ class Main {
                         rank(ranker, params, packet)
                     }
 
-                    logger.info('Sending ranked documents from message {} back to web', id)
-                    logger.info('Command: {}', message.getCommand())
+//                    logger.info('Sending ranked documents from message {} back to web', id)
+//                    logger.info('Command: {}', message.getCommand())
                     Main.this.po.send(message)
                     logger.info('Ranked documents from message {} sent back to {}',message.id, destination)
                 }
@@ -133,8 +133,10 @@ class Main {
         packet.documents.each { Document doc ->
             logger.trace("Before Doc {}: {}", doc.id, doc.score)
             Document scoredDoc = documentTimer.recordCallable { ranker.score(packet.query, params, doc) }
-            logger.trace("Scored Doc {}: {}", scoredDoc.id, scoredDoc.score)
-            scored.add(scoredDoc)
+            if (scoredDoc) {
+                logger.trace("Scored Doc {}: {}", scoredDoc.id, scoredDoc.score)
+                scored.add(scoredDoc)
+            }
 //            ranker.score(packet.query, doc)
         }
         documentsRanked.increment(scored.size())
