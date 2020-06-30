@@ -12,7 +12,7 @@ import org.lappsgrid.askme.core.model.Token
 import org.lappsgrid.serialization.lif.Annotation
 
 /**
- *
+ * The NLP processing is done at a different stage now and this class should be removed.
  */
 @Slf4j("logger")
 @Deprecated

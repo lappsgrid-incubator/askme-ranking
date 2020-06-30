@@ -8,7 +8,8 @@ import org.lappsgrid.askme.scoring.ScoringAlgorithm
 import org.lappsgrid.askme.scoring.WeightedAlgorithm
 
 /**
- *
+ * Calculates a score (ranking) for a section of text by applying a sequences of
+ * {@link ScoringAlgorithm}s and summing their scores.
  */
 @Slf4j("logger")
 class RankingEngine {
