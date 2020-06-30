@@ -7,6 +7,7 @@ import org.lappsgrid.askme.core.api.Query
 import org.lappsgrid.askme.core.metrics.Tags
 import org.lappsgrid.askme.core.model.Document
 
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -62,16 +63,18 @@ class RankingProcessor{
         CompositeRankingEngine engines = new CompositeRankingEngine(params)
         Document ranked_document = new Document()
         Future<Document> future = executor.submit(new RankingWorker(document, engines, query))
-//        Future<Document> f2 = executor.take()
         try {
             ranked_document = future.get()
         }
-        catch (Throwable e) {
+        catch (InterruptedException e) {
+            logger.error("Ranking was interrupted.")
+            // We are not re-throwing the InterruptedException so we should set the interrupt flag.
+            Thread.currentThread().interrupt()
+        }
+        catch (ExecutionException e) {
             logger.error("Unable to get future document.", e)
         }
         return ranked_document
-//        document.scores = ranked_document.scores
-//        document.score = ranked_document.score
     }
 
 
