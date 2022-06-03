@@ -106,12 +106,11 @@ class Main {
 				   params = null;
 				   packet.documents = null;
 				   packet = null;
+				   ranker.close();
 				   ranker = null;
 				   
 			   }
 		   }
-
-
 	   }
 	   synchronized(lock) { lock.wait() }
 	   box.close()
