@@ -21,9 +21,9 @@ class CompositeRankingEngine {
     ]
 
     CompositeRankingEngine(Map params) {
-        logger.info("Initializing engine: {}", params.size())
+        //logger.info("Initializing engine: {}", params.size())
         params.each { String key, String value ->
-            logger.debug("key: {} value: {}", key, value)
+            //logger.debug("key: {} value: {}", key, value)
             Triple triple = new Triple(key)
             if (triple.control == 'checkbox') {
                 //FIXME Shouldn't we check if the box has been selected?
@@ -59,7 +59,7 @@ class CompositeRankingEngine {
             else if (triple.id == 'x') {
                 RankingEngine engine = engines[triple.section]
                 if (engine) {
-                    logger.debug("weight for {} is {}", triple.section, value)
+                    //logger.debug("weight for {} is {}", triple.section, value)
                     engine.weight = value as float
                 }
                 else {
@@ -72,7 +72,7 @@ class CompositeRankingEngine {
             }
 
         }
-        logger.info("Initialized {} engines", engines.size())
+        //logger.info("Initialized {} engines", engines.size())
         engines.each { String section, RankingEngine engine ->
             logger.trace(engine.section)
             engine.algorithms.each { WeightedAlgorithm algorithm ->

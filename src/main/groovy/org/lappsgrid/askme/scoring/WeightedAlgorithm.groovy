@@ -22,7 +22,7 @@ class WeightedAlgorithm implements ScoringAlgorithm {
 
     float score(Query query, Section section) {
         float value = algorithm.score(query, section)
-        logger.debug("{} scored {}", this.name, value)
+        //logger.debug("{} scored {}", this.name, value)
         return weight * value //algorithm.score(query, section)
     }
 
