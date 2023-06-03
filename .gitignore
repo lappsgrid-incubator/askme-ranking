@@ -1,7 +1,15 @@
 target/
+target-*/
+
 .idea/
 *.iml
-*.iws
 *.ipr
+*.iws
+
+*.log
 VERSION
 Version.java
+
+*.jar
+*~
+.DS_Store
