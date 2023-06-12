@@ -15,6 +15,12 @@
     <artifactId>ranking</artifactId>
     <version>1.0.0</version>
 
+    <properties>
+        <lappsgrid.askme.core.version>2.2.0</lappsgrid.askme.core.version>
+        <lappsgrid.rabbitmq.version>1.2.0</lappsgrid.rabbitmq.version>
+        <lapps.serialization.version>2.7.0</lapps.serialization.version>
+    </properties>
+
     <build>
         <finalName>${project.artifactId}-${project.version}-${git.commit.id.describe-short}</finalName>
         <plugins>
@@ -127,17 +133,17 @@
         <dependency>
             <groupId>org.lappsgrid.askme</groupId>
             <artifactId>core</artifactId>
-            <version>2.1.0</version>
+            <version>${lappsgrid.askme.core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.lappsgrid</groupId>
             <artifactId>rabbitmq</artifactId>
-            <version>1.2.0</version>
+            <version>${lappsgrid.askme.core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.lappsgrid</groupId>
             <artifactId>serialization</artifactId>
-            <version>2.7.0</version>
+            <version>${lapps.serialization.version}</version>
         </dependency>
         <dependency>
             <groupId>edu.stanford.nlp</groupId>
