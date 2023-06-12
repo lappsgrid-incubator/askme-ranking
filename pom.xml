@@ -138,7 +138,7 @@
         <dependency>
             <groupId>org.lappsgrid</groupId>
             <artifactId>rabbitmq</artifactId>
-            <version>${lappsgrid.askme.core.version}</version>
+            <version>${lappsgrid.rabbitmq.version}</version>
         </dependency>
         <dependency>
             <groupId>org.lappsgrid</groupId>
