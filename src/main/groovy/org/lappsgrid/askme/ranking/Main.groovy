@@ -50,10 +50,12 @@ class Main {
    void init() {}
 
    void run(Object lock) {
+
 	   init()
 	   logger.info("Rabbit   : {}", config.HOST)
 	   logger.info("Exchange : {}", config.EXCHANGE)
 	   logger.info("Address  : {}", config.RANKING_MBOX)
+
 	   box = new MailBox(config.EXCHANGE, config.RANKING_MBOX, config.HOST) {
 		   // stores the ranking processor for given ID and parameters
 		   // all documents with the same ID will use the same ranking processor
@@ -61,7 +63,8 @@ class Main {
 
 		   @Override
 		   void recv(String s) {
-//                new File("/tmp/ranking.json").text = groovy.json.JsonOutput.prettyPrint(s)
+			   //new File("/tmp/askme-ranking.json").text = groovy.json.JsonOutput.prettyPrint(s)
+			   //new File("/tmp/askme-ranking.json").text = Serializer.toPrettyJson(s)
 			   //messagesReceived.increment()
 			   AskmeMessage message = Serializer.parse(s, AskmeMessage)
 			   String id = message.getId()
@@ -96,11 +99,11 @@ class Main {
 				   Map params = message.getParameters()
 				   String destination = message.route[0] ?: 'the void'
 				   Packet packet = message.body
-                   RankingProcessor ranker = new RankingProcessor(registry)
+				   RankingProcessor ranker = new RankingProcessor(registry)
 				   rank(ranker, params, packet)
 				   
 				   Main.this.po.send(message)
-				   logger.info('Ranked documents from message {} sent back to {}',message.id, destination)
+				   logger.info('Ranked documents, results sent back to {}', destination)
 				   
 				   message = null;
 				   params = null;
@@ -108,7 +111,6 @@ class Main {
 				   packet = null;
 				   ranker.close();
 				   ranker = null;
-				   
 			   }
 		   }
 	   }
@@ -128,7 +130,7 @@ class Main {
 			   logger.trace("Scored Doc {}: {}", scoredDoc.id, scoredDoc.score)
 			   scored.add(scoredDoc)
 		   }
-//            ranker.score(packet.query, doc)
+				//ranker.score(packet.query, doc)
 	   }
 	   //documentsRanked.increment(scored.size())
 	   logger.debug("Sorting {} documents.", packet.documents.size())
