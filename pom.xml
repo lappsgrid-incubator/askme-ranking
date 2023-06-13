@@ -22,7 +22,7 @@
     </properties>
 
     <build>
-        <finalName>${project.artifactId}-${project.version}-${git.commit.id.describe-short}</finalName>
+        <finalName>${project.artifactId}-${project.version}-${git.commit.id.describe}</finalName>
         <plugins>
              <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
