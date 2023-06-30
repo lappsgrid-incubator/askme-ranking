@@ -1,6 +1,7 @@
 package org.lappsgrid.askme.ranking
 
 import groovy.transform.CompileStatic
+import groovy.json.JsonOutput
 import groovy.util.logging.Slf4j
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Timer
@@ -34,117 +35,135 @@ import org.lappsgrid.serialization.Serializer
 @Slf4j('logger')
 class Main {
 
-   static final Configuration config = new Configuration()
+	static final Configuration config = new Configuration()
+	final PostOffice po = new PostOffice(config.EXCHANGE, config.HOST)
+	final PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-   final PostOffice po = new PostOffice(config.EXCHANGE, config.HOST)
+	MailBox box
+	RankingProcessor ranker
+	Counter documentsRanked
+	Counter messagesReceived
+	Timer timer
+	Timer documentTimer
 
-   final PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-   MailBox box
-   RankingProcessor ranker
-   Counter documentsRanked
-   Counter messagesReceived
-   Timer timer
-   Timer documentTimer
+	void init() {}
 
-   void init() {}
 
-   void run(Object lock) {
+	void run(Object lock) {
 
-	   init()
-	   logger.info("Rabbit   : {}", config.HOST)
-	   logger.info("Exchange : {}", config.EXCHANGE)
-	   logger.info("Address  : {}", config.RANKING_MBOX)
+		init()
+		logger.info("Rabbit   : {}", config.HOST)
+		logger.info("Exchange : {}", config.EXCHANGE)
+		logger.info("Address  : {}", config.RANKING_MBOX)
 
-	   box = new MailBox(config.EXCHANGE, config.RANKING_MBOX, config.HOST) {
-		   // stores the ranking processor for given ID and parameters
-		   // all documents with the same ID will use the same ranking processor
-		   Map ranking_processors = [:]
+		box = new MailBox(config.EXCHANGE, config.RANKING_MBOX, config.HOST) {
+			// stores the ranking processor for given ID and parameters
+			// all documents with the same ID will use the same ranking processor
+			Map ranking_processors = [:]
 
-		   @Override
-		   void recv(String s) {
-			   //new File("/tmp/askme-ranking.json").text = groovy.json.JsonOutput.prettyPrint(s)
-			   //new File("/tmp/askme-ranking.json").text = Serializer.toPrettyJson(s)
-			   //messagesReceived.increment()
-			   AskmeMessage message = Serializer.parse(s, AskmeMessage)
-			   String id = message.getId()
-			   String command = message.getCommand()
+			@Override
+			void recv(String s) {
+				new File("/tmp/askme-ranking.json").text = JsonOutput.prettyPrint(s)
+				//messagesReceived.increment()
+				AskmeMessage message = Serializer.parse(s, AskmeMessage)
+				String id = message.getId()
+				String command = message.getCommand()
 
-			   if (command == 'EXIT' || command == 'QUIT') {
-				   logger.info('Received shutdown message, terminating Ranking service')
-				   synchronized(lock) { lock.notify() }
-			   }
-			   else if(command == 'PING') {
-				   logger.info('Received PING message from and sending response back to {}', message.route[0])
-				   message.setCommand('PONG')
-				   logger.info('Response PONG sent to {}',  message.route[0])
-				   Main.this.po.send(message)
-			   }
-			   else if (command == "METRICS") {
-				   Message response = new Message()
-				   response.id = message.id
-				   response.setCommand('ok')
-				   response.body(registry.scrape())
-				   response.route = message.route
-				   logger.trace('Metrics sent to {}', response.route[0])
-				   Main.this.po.send(response)
-			   }
-			   else if (command == "remove_ranking_processor") {
-				   logger.info('Received command to remove ranking processor {}', id)
-				   ranking_processors.remove(id)
-				   logger.info('Removed ranking processor {}', id)
-			   }
-			   else {
-				   logger.info("Received documents from query {}", id)
-				   Map params = message.getParameters()
-				   String destination = message.route[0] ?: 'the void'
-				   Packet packet = message.body
-				   RankingProcessor ranker = new RankingProcessor(registry)
-				   rank(ranker, params, packet)
-				   
-				   Main.this.po.send(message)
-				   logger.info('Ranked documents, results sent back to {}', destination)
-				   
-				   message = null;
-				   params = null;
-				   packet.documents = null;
-				   packet = null;
-				   ranker.close();
-				   ranker = null;
-			   }
-		   }
-	   }
-	   synchronized(lock) { lock.wait() }
-	   box.close()
-	   po.close()
-	   logger.info("Ranking service terminated")
-	   System.exit(0)
-   }
+				if (command == 'EXIT' || command == 'QUIT') {
+					logger.info('Received shutdown message, terminating Ranking service')
+					synchronized(lock) { lock.notify() }
+				}
+				else if(command == 'PING') {
+					logger.info('Received PING message from and sending response back to {}', message.route[0])
+					message.setCommand('PONG')
+					logger.info('Response PONG sent to {}',  message.route[0])
+					Main.this.po.send(message)
+				}
+				else if (command == "METRICS") {
+					Message response = new Message()
+					response.id = message.id
+					response.setCommand('ok')
+					response.body(registry.scrape())
+					response.route = message.route
+					logger.trace('Metrics sent to {}', response.route[0])
+					Main.this.po.send(response)
+				}
+				else if (command == "remove_ranking_processor") {
+					logger.info('Received command to remove ranking processor {}', id)
+					ranking_processors.remove(id)
+					logger.info('Removed ranking processor {}', id)
+				}
 
-   void rank(RankingProcessor ranker, Map params, Packet packet) {
-	   List<Document> scored = []
-	   packet.documents.each { Document doc ->
-		   logger.trace("Before Doc {}: {}", doc.id, doc.score)
-		   Document scoredDoc = ranker.score(packet.query, params, doc)
-		   if (scoredDoc) {
-			   logger.trace("Scored Doc {}: {}", scoredDoc.id, scoredDoc.score)
-			   scored.add(scoredDoc)
-		   }
-				//ranker.score(packet.query, doc)
-	   }
-	   //documentsRanked.increment(scored.size())
-	   logger.debug("Sorting {} documents.", packet.documents.size())
-	   packet.documents = scored.sort({a,b -> b.score <=> a.score})
-	   logger.trace("Done sort.")
+				else {
+
+					logger.info("Received documents from query {}", id)
+					Map params = message.getParameters()
+					String destination = message.route[0] ?: 'the void'
+					Packet packet = message.body
+					System.out.println('>>> destination : ' + destination)
+					System.out.println('>>> packet      : ' + packet)
+
+					// set the score fields on all documents
+					RankingProcessor ranker = new RankingProcessor(registry)
+					rank(ranker, params, packet)
+
+					// remove tokens and sentences from the document, with this the size of
+					// the packet inside the message will shrink two orders of magnitude
+					packet.documents.each { doc -> doc.shrinkSections() }
+				
+					printMessage('askme.ranking.Main : sending message', message)
+					Main.this.po.send(message)
+					logger.info('Ranked documents, results sent back to {}', destination)
+
+					message = null;
+					params = null;
+					packet.documents = null;
+					packet = null;
+					ranker.close();
+					ranker = null;
+				}
+			}
+		}
+
+		synchronized(lock) { lock.wait() }
+		box.close()
+		po.close()
+		logger.info("Ranking service terminated")
+		System.exit(0)
+	}
+
+
+	void rank(RankingProcessor ranker, Map params, Packet packet) {
+		List<Document> scored = []
+		packet.documents.each { Document doc ->
+			logger.trace("Before Doc {}: {}", doc.id, doc.score)
+			Document scoredDoc = ranker.score(packet.query, params, doc)
+			if (scoredDoc) {
+				logger.trace("Scored Doc {}: {}", scoredDoc.id, scoredDoc.score)
+				scored.add(scoredDoc)
+			}
+		}
+		//documentsRanked.increment(scored.size())
+		logger.debug("Sorting {} documents.", packet.documents.size())
+		packet.documents = scored.sort({a,b -> b.score <=> a.score})
+		logger.trace("Done sort.")
 	   
-	   scored = null;
-   }
+		scored = null;
+	}
 
-   static void main(String[] args) {
-	   logger.info("Starting Ranking service")
-	   Object lock = new Object()
-	   Thread.start {
-		   new Main().run(lock)
-	   }
-   }
+
+	static void printMessage(String header, AskmeMessage message) {
+		System.out.println(sprintf('>>> %s\n%s', header, message.toString()))
+    }
+
+
+	static void main(String[] args) {
+		logger.info("Starting Ranking service")
+		Object lock = new Object()
+		Thread.start {
+			new Main().run(lock)
+		}
+	}
+
 }
