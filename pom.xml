@@ -16,7 +16,7 @@
     <version>1.1.0-SNAPSHOT</version>
 
     <properties>
-        <lappsgrid.askme.core.version>2.3.0-SNAPSHOT</lappsgrid.askme.core.version>
+        <lappsgrid.askme.core.version>2.3.0</lappsgrid.askme.core.version>
         <lappsgrid.rabbitmq.version>1.2.0</lappsgrid.rabbitmq.version>
         <lapps.serialization.version>2.7.0</lapps.serialization.version>
     </properties>
