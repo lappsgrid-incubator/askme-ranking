@@ -19,7 +19,7 @@ class RankingProcessor{
 
     ExecutorCompletionService<Document> executor
 	ExecutorService executorService
-//    CompositeRankingEngine engines
+    //CompositeRankingEngine engines
 
 
     RankingProcessor(MeterRegistry registry) {
@@ -30,8 +30,8 @@ class RankingProcessor{
     RankingProcessor(int nThreads, MeterRegistry registry) {
         executorService = Executors.newFixedThreadPool(nThreads)
         executor = new ExecutorCompletionService<>(executorService)
-//        new ExecutorServiceMetrics(executorService, "ranking.executor", Tags.RANK).bindTo(registry)
-//        engines = new CompositeRankingEngine(params)
+        //new ExecutorServiceMetrics(executorService, "ranking.executor", Tags.RANK).bindTo(registry)
+        //engines = new CompositeRankingEngine(params)
     }
 
     List<Document> rank(Query query, Map params, List<Document> documents) {

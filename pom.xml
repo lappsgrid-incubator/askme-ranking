@@ -13,10 +13,16 @@
 
     <groupId>org.lappsgrid.askme</groupId>
     <artifactId>ranking</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
+
+    <properties>
+        <lappsgrid.askme.core.version>2.3.0</lappsgrid.askme.core.version>
+        <lappsgrid.rabbitmq.version>1.2.0</lappsgrid.rabbitmq.version>
+        <lapps.serialization.version>2.7.0</lapps.serialization.version>
+    </properties>
 
     <build>
-        <finalName>${project.artifactId}-${project.version}-${git.commit.id.describe-short}</finalName>
+        <finalName>${project.artifactId}-${project.version}-${git.commit.id.describe}</finalName>
         <plugins>
              <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -127,33 +133,22 @@
         <dependency>
             <groupId>org.lappsgrid.askme</groupId>
             <artifactId>core</artifactId>
-            <version>2.1.0</version>
+            <version>${lappsgrid.askme.core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.lappsgrid</groupId>
             <artifactId>rabbitmq</artifactId>
-            <version>1.2.0</version>
+            <version>${lappsgrid.rabbitmq.version}</version>
         </dependency>
         <dependency>
             <groupId>org.lappsgrid</groupId>
             <artifactId>serialization</artifactId>
-            <version>2.7.0</version>
+            <version>${lapps.serialization.version}</version>
         </dependency>
         <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-            <version>3.9.2</version>
-        </dependency>
-        <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-            <version>3.9.2</version>
-            <classifier>models</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.solr</groupId>
-            <artifactId>solr-solrj</artifactId>
-            <version>7.4.0</version>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>3.0.9</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

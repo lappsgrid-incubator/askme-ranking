@@ -8,7 +8,7 @@ import org.junit.Test
 import org.lappsgrid.serialization.Serializer
 import org.lappsgrid.askme.core.api.Query
 import org.lappsgrid.askme.core.model.Token
-import org.lappsgrid.askme.ranking.model.Document
+import org.lappsgrid.askme.core.model.Document
 
 /**
  *
